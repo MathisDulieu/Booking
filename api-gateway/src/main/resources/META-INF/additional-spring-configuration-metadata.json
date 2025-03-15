@@ -1,0 +1,54 @@
+{
+  "properties": [
+    {
+      "name": "booking.properties.spring-rabbitmq-host",
+      "type": "java.lang.String",
+      "description": "Description for booking.properties.spring-rabbitmq-host."
+    },
+    {
+      "name": "booking.properties.spring-rabbitmq-port",
+      "type": "java.lang.String",
+      "description": "Description for booking.properties.spring-rabbitmq-port."
+    },
+    {
+      "name": "booking.properties.spring-rabbitmq-username",
+      "type": "java.lang.String",
+      "description": "Description for booking.properties.spring-rabbitmq-username."
+    },
+    {
+      "name": "booking.properties.spring-rabbitmq-password",
+      "type": "java.lang.String",
+      "description": "Description for booking.properties.spring-rabbitmq-password."
+    },
+    {
+      "name": "booking.properties.event-service-url",
+      "type": "java.lang.String",
+      "description": "Description for booking.properties.event-service-url."
+    },
+    {
+      "name": "booking.properties.user-service-url",
+      "type": "java.lang.String",
+      "description": "Description for booking.properties.user-service-url."
+    },
+    {
+      "name": "booking.properties.ticket-service-url",
+      "type": "java.lang.String",
+      "description": "Description for booking.properties.ticket-service-url."
+    },
+    {
+      "name": "booking.properties.payment-service-url",
+      "type": "java.lang.String",
+      "description": "Description for booking.properties.payment-service-url."
+    },
+    {
+      "name": "booking.properties.notification-service-url",
+      "type": "java.lang.String",
+      "description": "Description for booking.properties.notification-service-url."
+    },
+    {
+      "name": "booking.properties.allowed-origins",
+      "type": "java.lang.String",
+      "description": "A list of allowed origins for CORS requests."
+    }
+  ]
+}
