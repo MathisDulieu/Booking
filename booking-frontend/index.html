@@ -1,13 +1,62 @@
 <!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>EventHub - Plateforme de Billetterie pour Concerts et Événements</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="./src/assets/images/favicon/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="./src/assets/images/favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="./src/assets/images/favicon/favicon-16x16.png">
+  <link rel="manifest" href="./src/assets/images/favicon/site.webmanifest">
+  <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="EventHub vous propose une plateforme SaaS complète pour la gestion et la vente de billets pour tous types d'événements, des petites manifestations locales aux tournées internationales." />
+  <meta name="keywords" content="billetterie, concerts, événements, vente de billets, gestion d'événements, système de réservation, tickets" />
+  <meta name="author" content="EventHub Team" />
+
+  <meta property="og:title" content="EventHub - Plateforme de Billetterie pour Concerts et Événements" />
+  <meta property="og:description" content="Gérez vos événements et la vente de billets facilement avec notre plateforme SaaS sécurisée et performante." />
+  <meta property="og:image" content="/images/eventhub-banner.jpg" />
+  <meta property="og:url" content="https://www.eventhub.com" />
+  <meta property="og:type" content="website" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="EventHub - Solution de Billetterie Événementielle" />
+  <meta name="twitter:description" content="Plateforme complète pour la création, gestion et vente de billets d'événements de toutes tailles." />
+
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "EventHub",
+      "url": "https://www.eventhub.com",
+      "description": "Système de gestion et de vente de billets pour concerts et événements, adapté aux petites structures comme aux tournées internationales.",
+      "image": "/images/eventhub-banner.jpg",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "EUR"
+      },
+      "author": {
+        "@type": "Organization",
+        "name": "EventHub",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "65 Pl. Rihour",
+          "addressLocality": "Lille",
+          "addressRegion": "Hauts-de-France",
+          "postalCode": "59800",
+          "addressCountry": "FR"
+        }
+      }
+    }
+  </script>
+</head>
+<body>
+<div id="root"></div>
+<script type="module" src="./src/main.jsx"></script>
+</body>
 </html>
