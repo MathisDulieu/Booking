@@ -73,10 +73,11 @@ const Header = () => {
 
                 <div className="w-full max-w-md lg:max-w-xl xl:max-w-2xl bg-white rounded-md hidden md:flex items-center mx-4 border border-blue-500 focus-within:ring-2 focus-within:ring-blue-300">
                     <select className="bg-transparent uppercase font-bold text-xs lg:text-sm p-2 lg:p-4 mr-2 lg:mr-4 cursor-pointer hover:bg-gray-100 transition duration-300 text-blue-800" name="categories" id="categories">
-                        <option>Toutes Catégories</option>
+                        <option>Évenements</option>
                         <option>Concert</option>
                         <option>Festival</option>
                         <option>Artiste</option>
+                        <option>Lieu</option>
                     </select>
                     <input
                         className="border-l border-gray-300 bg-transparent font-semibold text-sm pl-4 py-2 lg:py-3 flex-grow focus:outline-none text-gray-800"

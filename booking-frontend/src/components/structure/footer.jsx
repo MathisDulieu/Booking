@@ -4,7 +4,7 @@ import logoImage from '../../assets/images/logo/EventHubLogo.png';
 
 const Footer = () => {
     return (
-        <footer className="bg-blue-700">
+        <div className="bg-blue-700 w-full">
             <div className="max-w-screen-xl px-4 py-16 mx-auto sm:px-6 lg:px-8">
                 <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
                     <div>
@@ -91,7 +91,7 @@ const Footer = () => {
                     © {new Date().getFullYear()} EventHub. Tous droits réservés.
                 </p>
             </div>
-        </footer>
+        </div>
     );
 };
 

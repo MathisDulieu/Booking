@@ -30,28 +30,7 @@ export default function App() {
     const [isLoading, setIsLoading] = useState(true);
 
     const getUserDetails = async () => {
-        // try {
-        //     const response = await getUserData();
-        //
-        //     if (response.informations) {
-        //         const userInfo = {
-        //             username: response.informations.username || "undefined",
-        //             profileImageUrl: response.informations.profileImageUrl || "undefined",
-        //             userRole: response.informations.userRole || "USER",
-        //             error: response.informations.error
-        //         };
-        //
-        //         setIsAdmin(userInfo.userRole === "ADMIN");
-        //         setIsArtist(userInfo.userRole === "ARTIST");
-        //
-        //         localStorage.setItem("username", userInfo.username);
-        //         localStorage.setItem("profileImage", userInfo.profileImageUrl);
-        //         localStorage.setItem("userRole", userInfo.userRole);
-        //         setIsAuthenticated(true)
-        //     }
-        // } catch (error) {
-        //     console.error("Failed to fetch User:", error);
-        // }
+        // votre code de récupération des données utilisateur
     };
 
     useEffect(() => {
@@ -78,7 +57,7 @@ export default function App() {
                         {isLoading ? (
                             <Route path="/*" element={<div>Chargement...</div>} />
                         ) : (
-                            <Route path="/*" element={<Main isAuthenticated={isAuthenticated} isAdmin={isAdmin} isArtist={isArtist} />} />
+                            <Route path="/*" element={<PageLayout isAuthenticated={isAuthenticated} isAdmin={isAdmin} isArtist={isArtist} />} />
                         )}
                     </Routes>
                 </div>
@@ -87,60 +66,60 @@ export default function App() {
     );
 }
 
-function Main({ isAuthenticated, isAdmin, isArtist }) {
+function PageLayout({ isAuthenticated, isAdmin, isArtist }) {
     const location = useLocation();
     const isAdminPage = location.pathname.startsWith("/admin");
-    const isArtistPage = location.pathname.startsWith("/artist")
+
+    // Ajoutez un style global pour supprimer la double barre de défilement
+    React.useEffect(() => {
+        // Supprime toute barre de défilement supplémentaire
+        document.body.style.overflow = "auto";
+        document.documentElement.style.overflow = "auto";
+
+        return () => {
+            document.body.style.overflow = "";
+            document.documentElement.style.overflow = "";
+        };
+    }, [location.pathname]);
 
     return (
-        <div className="flex flex-col min-h-screen">
-            {!isAdminPage && (
-                <header className="App-header">
-                    <Header />
-                </header>
-            )}
-
-            <main className="App-main flex-grow">
+        <>
+            {!isAdminPage && <Header />}
+            <div className="page-content">
                 <Routes>
-                    <Route exact path="/" element={<div className="Main"><Home /></div>} />
-
-                    <Route exact path="/connexion" element={<PublicRoute isAuthenticated={isAuthenticated} element={<div className="Main"><Register /></div>} />} />
-                    <Route exact path="/inscription" element={<PublicRoute isAuthenticated={isAuthenticated} element={<div className="Main"><Login /></div>} />} />
-                    <Route exact path="/valider-email/:token" element={<PublicRoute element={<div className="Main"><ValidEmail /></div>} />} />
-                    <Route exact path="/envoyer-email-validation" element={<PublicRoute element={<div className="Main"><SendValidationEmail /></div>} />} />
-                    <Route exact path="/evenement/:eventId" element={<PublicRoute element={<div className="Main"><Event /></div>} />} />
+                    <Route exact path="/" element={<Home />} />
+                    <Route exact path="/connexion" element={<PublicRoute isAuthenticated={isAuthenticated} element={<Login />} />} />
+                    <Route exact path="/inscription" element={<PublicRoute isAuthenticated={isAuthenticated} element={<Register />} />} />
+                    <Route exact path="/valider-email/:token" element={<PublicRoute element={<ValidEmail />} />} />
+                    <Route exact path="/envoyer-email-validation" element={<PublicRoute element={<SendValidationEmail />} />} />
+                    <Route exact path="/evenement/:eventId" element={<PublicRoute element={<Event />} />} />
 
                     <Route exact path="/admin/tableau-de-bord" element={
                         <PrivateRoute
                             isAuthenticated={isAuthenticated}
                             requiredRole="admin"
                             hasRole={isAdmin}
-                            element={<div className="Main"><AdminDashboard /></div>}
+                            element={<AdminDashboard />}
                         />
                     } />
 
-                    <Route exact path="/mon-compte" element={<PrivateRoute isAuthenticated={isAuthenticated} element={<div className="Main"><Account /></div>} />} />
-                    <Route exact path="/mes-tickets" element={<PrivateRoute isAuthenticated={isAuthenticated} element={<div className="Main"><Tickets /></div>} />} />
-                    <Route exact path="/mon-panier" element={<PrivateRoute isAuthenticated={isAuthenticated} element={<div className="Main"><Cart /></div>} />} />
+                    <Route exact path="/mon-compte" element={<PrivateRoute isAuthenticated={isAuthenticated} element={<Account />} />} />
+                    <Route exact path="/mes-tickets" element={<PrivateRoute isAuthenticated={isAuthenticated} element={<Tickets />} />} />
+                    <Route exact path="/mon-panier" element={<PrivateRoute isAuthenticated={isAuthenticated} element={<Cart />} />} />
 
                     <Route exact path="/artiste/tableau-de-bord" element={
                         <PrivateRoute
                             isAuthenticated={isAuthenticated}
                             requiredRole="artist"
                             hasRole={isArtist}
-                            element={<div className="Main"><ArtistDashboard /></div>}
+                            element={<ArtistDashboard />}
                         />
                     } />
 
-                    <Route exact path="*" element={<div className="Main"><NotFound /></div>} />
+                    <Route exact path="*" element={<NotFound />} />
                 </Routes>
-            </main>
-
-            {!isAdminPage && (
-                <footer className="App-footer mt-auto">
-                    <Footer />
-                </footer>
-            )}
-        </div>
+            </div>
+            {!isAdminPage && <Footer />}
+        </>
     );
 }
