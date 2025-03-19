@@ -1,6 +1,6 @@
 package com.microservices.api_gateway.services;
 
-import com.microservices.api_gateway.configuration.EnvConfiguration;
+import com.microservices.api_gateway.configurations.EnvConfiguration;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -11,13 +11,21 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class NotificationService {
 
-    private EnvConfiguration envConfiguration;
+    private final EnvConfiguration envConfiguration;
 
-    public ResponseEntity<Map<String, String>> sendConfirmationEmail() {
+    public ResponseEntity<Map<String, String>> getUserNotifications() {
         return null;
     }
 
-    public ResponseEntity<Map<String, String>> sendConfirmationSMS() {
+    public ResponseEntity<Map<String, String>> getCurrentUserNotifications() {
+        return null;
+    }
+
+    public ResponseEntity<Map<String, String>> updateNotificationPreferences() {
+        return null;
+    }
+
+    public ResponseEntity<Map<String, String>> sendNotification() {
         return null;
     }
 }

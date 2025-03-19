@@ -58,6 +58,8 @@ services:
       - PAYMENT_SERVICE_URL=http://payment-service:8083
       - NOTIFICATION_SERVICE_URL=http://notification-service:8082
       - ALLOWED_ORIGINS=http://localhost
+      - MONGO_URI=mongodb://root:rootpassword@mongodb:27017/booking?authSource=admin
+      - DATABASE_NAME=Booking
     depends_on:
       - mongodb
       - rabbitmq

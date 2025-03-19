@@ -1,6 +1,6 @@
 package com.microservices.api_gateway.services;
 
-import com.microservices.api_gateway.configuration.EnvConfiguration;
+import com.microservices.api_gateway.configurations.EnvConfiguration;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -11,7 +11,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class EventService {
 
-    private EnvConfiguration envConfiguration;
+    private final EnvConfiguration envConfiguration;
 
     public ResponseEntity<Map<String, String>> createEvent() {
         return null;
@@ -21,15 +21,15 @@ public class EventService {
         return null;
     }
 
-    public ResponseEntity<Map<String, String>> getEvents() {
-        return null;
-    }
-
     public ResponseEntity<Map<String, String>> updateEvent() {
         return null;
     }
 
     public ResponseEntity<Map<String, String>> deleteEvent() {
+        return null;
+    }
+
+    public ResponseEntity<Map<String, String>> getAllEvents() {
         return null;
     }
 }

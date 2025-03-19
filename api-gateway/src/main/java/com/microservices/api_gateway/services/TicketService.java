@@ -1,6 +1,6 @@
 package com.microservices.api_gateway.services;
 
-import com.microservices.api_gateway.configuration.EnvConfiguration;
+import com.microservices.api_gateway.configurations.EnvConfiguration;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -11,21 +11,17 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class TicketService {
 
-    private EnvConfiguration envConfiguration;
-
-    public ResponseEntity<Map<String, String>> buyTicket() {
-        return null;
-    }
-
-    public ResponseEntity<Map<String, String>> getTicketById() {
-        return null;
-    }
-
-    public ResponseEntity<Map<String, String>> getUserTickets() {
-        return null;
-    }
+    private final EnvConfiguration envConfiguration;
 
     public ResponseEntity<Map<String, String>> cancelTicket() {
+        return null;
+    }
+
+    public ResponseEntity<Map<String, String>> getCurrentUserTickets() {
+        return null;
+    }
+
+    public ResponseEntity<Map<String, String>> validateTicket() {
         return null;
     }
 }

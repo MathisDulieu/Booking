@@ -1,6 +1,6 @@
 package com.microservices.api_gateway;
 
-import com.microservices.api_gateway.configuration.EnvConfiguration;
+import com.microservices.api_gateway.configurations.EnvConfiguration;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
