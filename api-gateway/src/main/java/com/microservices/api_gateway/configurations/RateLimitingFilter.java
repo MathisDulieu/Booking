@@ -1,4 +1,4 @@
-package com.microservices.api_gateway.configuration;
+package com.microservices.api_gateway.configurations;
 
 import com.microservices.api_gateway.services.RateLimitingService;
 import jakarta.servlet.FilterChain;

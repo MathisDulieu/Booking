@@ -1,11 +1,9 @@
-package com.microservices.api_gateway.configuration;
+package com.microservices.api_gateway.configurations;
 
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
-
-import java.util.Map;
 
 @Getter
 @Setter
@@ -22,5 +20,7 @@ public class EnvConfiguration {
     private String ticketServiceUrl;
     private String paymentServiceUrl;
     private String notificationServiceUrl;
+    private String mongoUri;
+    private String databaseName;
 }
 

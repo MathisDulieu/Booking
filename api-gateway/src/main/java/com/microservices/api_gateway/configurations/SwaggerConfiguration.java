@@ -1,4 +1,4 @@
-package com.microservices.api_gateway.configuration;
+package com.microservices.api_gateway.configurations;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;

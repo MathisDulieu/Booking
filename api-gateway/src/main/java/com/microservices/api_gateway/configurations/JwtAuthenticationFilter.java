@@ -1,5 +1,7 @@
-package com.microservices.api_gateway.configuration;
+package com.microservices.api_gateway.configurations;
 
+import com.microservices.api_gateway.dao.UserDao;
+import com.microservices.api_gateway.models.User;
 import com.microservices.api_gateway.services.JwtTokenService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -16,13 +18,16 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Component
 @AllArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenService jwtTokenService;
+    private final UserDao userDao;
 
     @Override
     protected void doFilterInternal(@NotNull HttpServletRequest request,
@@ -49,11 +54,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return null;
         }
 
-        return new UsernamePasswordAuthenticationToken(
-                userId,
-                null,
-                Collections.singletonList(new SimpleGrantedAuthority("USER"))
-        );
+        Optional<User> optionalUser = userDao.findById(userId);
+
+        return optionalUser.map(this::buildAuthentication).orElse(null);
+    }
+
+    private Authentication buildAuthentication(User user) {
+        List<SimpleGrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority(user.getRole().toString()));
+        return new UsernamePasswordAuthenticationToken(user, null, authorities);
     }
 
     private boolean isNotPrivateRoute(String uri) {

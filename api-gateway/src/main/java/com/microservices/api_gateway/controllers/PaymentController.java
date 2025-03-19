@@ -1,4 +1,4 @@
-package com.microservices.api_gateway.controller;
+package com.microservices.api_gateway.controllers;
 
 import com.microservices.api_gateway.services.PaymentService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,22 +12,21 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/payments")
+@RequestMapping("/api/private/payment")
 @RequiredArgsConstructor
 public class PaymentController {
 
     private final PaymentService paymentService;
 
-    @PostMapping
-    @Operation(tags = {"Payment"})
-    public ResponseEntity<Map<String, String>> processPayment() {
-        return paymentService.processPayment();
+    @PostMapping("/card")
+    @Operation(tags = {"Payment"}, summary = "Payer par carte bancaire")
+    public ResponseEntity<Map<String, String>> payWithCard() {
+        return paymentService.processCardPayment();
     }
 
-    @GetMapping("/{id}")
-    @Operation(tags = {"Payment"})
-    public ResponseEntity<Map<String, String>> getPaymentStatus() {
-        return paymentService.getPaymentStatus();
+    @PostMapping("/paypal")
+    @Operation(tags = {"Payment"}, summary = "Payer par PayPal")
+    public ResponseEntity<Map<String, String>> payWithPayPal() {
+        return paymentService.processPayPalPayment();
     }
-
 }
