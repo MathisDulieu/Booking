@@ -1,34 +1,16 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import logoImage from '../../assets/images/logo/EventHubLogo.png';
 import { Link } from 'react-router-dom';
 import { AuthContext } from '../../services/AuthContext';
-import { LayoutDashboard, Menu, Search, X } from 'lucide-react';
+import { CartContext } from '../../services/CartContext';
+import { LayoutDashboard, Menu, Search, X, ShoppingCart } from 'lucide-react';
 
 const Header = () => {
-    const [cartPrice, setCartPrice] = useState(0);
-    const [cartNotification, setCartNotification] = useState(0);
     const [searchTerm, setSearchTerm] = useState('');
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
     const { isAuthenticated, isAdmin, isArtist } = useContext(AuthContext);
-
-    const updateCartPrice = (newPrice) => {
-        setCartPrice(newPrice);
-    };
-
-    const updateCartNotification = (count) => {
-        setCartNotification(count);
-    };
-
-    useEffect(() => {
-        window.updateCartPrice = updateCartPrice;
-        window.updateCartNotification = updateCartNotification;
-
-        return () => {
-            delete window.updateCartPrice;
-            delete window.updateCartNotification;
-        };
-    }, []);
+    const { totalPrice, totalItems } = useContext(CartContext);
 
     const handleSearch = () => {
         console.log("Recherche effectuée pour:", searchTerm);
@@ -124,9 +106,9 @@ const Header = () => {
                                     ) : (
                                         <li className="ml-2 lg:ml-4 relative inline-block">
                                             <Link to="/mon-panier" className="block transform hover:scale-110 transition duration-300">
-                                                {cartNotification > 0 && (
+                                                {totalItems > 0 && (
                                                     <div className="absolute -top-1 right-0 z-10 bg-yellow-400 text-blue-900 text-xs font-bold px-1 py-0.5 rounded-sm">
-                                                        {cartNotification}
+                                                        {totalItems}
                                                     </div>
                                                 )}
                                                 <svg className="h-10 lg:h-12 p-2 text-white hover:text-blue-100" aria-hidden="true" focusable="false" data-prefix="far" data-icon="shopping-cart" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><path fill="currentColor" d="M551.991 64H144.28l-8.726-44.608C133.35 8.128 123.478 0 112 0H12C5.373 0 0 5.373 0 12v24c0 6.627 5.373 12 12 12h80.24l69.594 355.701C150.796 415.201 144 430.802 144 448c0 35.346 28.654 64 64 64s64-28.654 64-64a63.681 63.681 0 0 0-8.583-32h145.167a63.681 63.681 0 0 0-8.583 32c0 35.346 28.654 64 64 64 35.346 0 64-28.654 64-64 0-18.136-7.556-34.496-19.676-46.142l1.035-4.757c3.254-14.96-8.142-29.101-23.452-29.101H203.76l-9.39-48h312.405c11.29 0 21.054-7.869 23.452-18.902l45.216-208C578.695 78.139 567.299 64 551.991 64zM208 472c-13.234 0-24-10.766-24-24s10.766-24 24-24 24 10.766 24 24-10.766 24-24 24zm256 0c-13.234 0-24-10.766-24-24s10.766-24 24-24 24 10.766 24 24-10.766 24-24 24zm23.438-200H184.98l-31.31-160h368.548l-34.78 160z"></path></svg>
@@ -140,7 +122,7 @@ const Header = () => {
                                 {!(isAdmin || isArtist) && (
                                     <>
                                         <span className="text-xs text-white">Votre Panier</span>
-                                        <span className="text-sm">{cartPrice.toFixed(2)} €</span>
+                                        <span className="text-sm">{totalPrice.toFixed(2)} €</span>
                                     </>
                                 )}
                             </div>
@@ -213,14 +195,12 @@ const Header = () => {
                                     {!(isAdmin || isArtist) && (
                                         <li>
                                             <Link to="/mon-panier" className="flex items-center text-white font-medium py-2 px-3 rounded-md hover:bg-blue-800 transition duration-300" onClick={() => setMobileMenuOpen(false)}>
-                                                <svg className="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                                                </svg>
+                                                <ShoppingCart className="h-5 w-5 mr-2" />
                                                 Panier
-                                                <span className="ml-2">({cartPrice.toFixed(2)} €)</span>
-                                                {cartNotification > 0 && (
+                                                <span className="ml-2">({totalPrice.toFixed(2)} €)</span>
+                                                {totalItems > 0 && (
                                                     <span className="ml-2 bg-yellow-400 text-blue-900 text-xs font-bold px-2 py-0.5 rounded">
-                                                        {cartNotification}
+                                                        {totalItems}
                                                     </span>
                                                 )}
                                             </Link>

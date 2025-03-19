@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {BrowserRouter, Route, Routes, useLocation} from "react-router-dom";
 
 import {AuthContext} from './services/AuthContext';
+import {CartProvider} from './services/CartProvider'; // Importation du CartProvider
 
 import PrivateRoute from "./services/PrivateRoute";
 import PublicRoute from "./services/PublicRoute";
@@ -18,7 +19,6 @@ import Home from "./pages/common/Home.jsx";
 import Event from "./pages/common/Event.jsx";
 import NotFound from "./pages/common/NotFound.jsx";
 import Account from "./pages/user/Account.jsx";
-import Tickets from "./pages/user/Tickets.jsx";
 import Cart from "./pages/user/Cart.jsx";
 import ArtistDashboard from "./pages/artist/ArtistDashboard.jsx";
 
@@ -51,17 +51,19 @@ export default function App() {
             isArtist,
             setIsArtist
         }}>
-            <BrowserRouter>
-                <div className="App">
-                    <Routes>
-                        {isLoading ? (
-                            <Route path="/*" element={<div>Chargement...</div>} />
-                        ) : (
-                            <Route path="/*" element={<PageLayout isAuthenticated={isAuthenticated} isAdmin={isAdmin} isArtist={isArtist} />} />
-                        )}
-                    </Routes>
-                </div>
-            </BrowserRouter>
+            <CartProvider> {/* Ajout du CartProvider qui enveloppe le BrowserRouter */}
+                <BrowserRouter>
+                    <div className="App">
+                        <Routes>
+                            {isLoading ? (
+                                <Route path="/*" element={<div>Chargement...</div>} />
+                            ) : (
+                                <Route path="/*" element={<PageLayout isAuthenticated={isAuthenticated} isAdmin={isAdmin} isArtist={isArtist} />} />
+                            )}
+                        </Routes>
+                    </div>
+                </BrowserRouter>
+            </CartProvider>
         </AuthContext.Provider>
     );
 }
@@ -104,7 +106,6 @@ function PageLayout({ isAuthenticated, isAdmin, isArtist }) {
                     } />
 
                     <Route exact path="/mon-compte" element={<PrivateRoute isAuthenticated={isAuthenticated} element={<Account />} />} />
-                    <Route exact path="/mes-tickets" element={<PrivateRoute isAuthenticated={isAuthenticated} element={<Tickets />} />} />
                     <Route exact path="/mon-panier" element={<PrivateRoute isAuthenticated={isAuthenticated} element={<Cart />} />} />
 
                     <Route exact path="/artiste/tableau-de-bord" element={
