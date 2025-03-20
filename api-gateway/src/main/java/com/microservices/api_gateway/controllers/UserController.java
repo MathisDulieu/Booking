@@ -69,39 +69,4 @@ public class UserController {
         return userService.createUser();
     }
 
-    @PostMapping("/user/login")
-    @Operation(tags = {"User"}, summary = "Login")
-    public ResponseEntity<Map<String, String>> login() {
-        return userService.login();
-    }
-
-    @PostMapping("/user/register")
-    @Operation(tags = {"User"}, summary = "Register")
-    public ResponseEntity<Map<String, String>> register() {
-        return userService.register();
-    }
-
-    @PostMapping("/user/validate-email")
-    @Operation(tags = {"User"}, summary = "Valider l'email")
-    public ResponseEntity<Map<String, String>> validateEmail() {
-        return userService.validateEmail();
-    }
-
-    @PostMapping("/private/user/validate-phone")
-    @Operation(tags = {"User"}, summary = "Valider le numéro de téléphone")
-    public ResponseEntity<Map<String, String>> validatePhone() {
-        return userService.validatePhone();
-    }
-
-    @PostMapping("/user/resend-email-validation")
-    @Operation(tags = {"User"}, summary = "Renvoyer un email de validation")
-    public ResponseEntity<Map<String, String>> resendEmailValidation() {
-        return userService.resendEmailValidation();
-    }
-
-    @PostMapping("/user/send-phone-code")
-    @Operation(tags = {"User"}, summary = "Envoyer un code pour valider le numéro de téléphone")
-    public ResponseEntity<Map<String, String>> sendPhoneValidationCode() {
-        return userService.sendPhoneValidationCode();
-    }
 }

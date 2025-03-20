@@ -16,14 +16,24 @@ public class MongoConfiguration {
 
     private final EnvConfiguration envConfiguration;
 
+//    @Bean
+//    public MongoClient mongoClient() {
+//        return MongoClients.create(envConfiguration.getMongoUri());
+//    }
+
     @Bean
     public MongoClient mongoClient() {
-        return MongoClients.create(envConfiguration.getMongoUri());
+        return MongoClients.create("mongodb://root:rootpassword@mongodb:27017/booking?authSource=admin");
     }
+
+//    @Bean
+//    public MongoTemplate mongoTemplate() {
+//        return new MongoTemplate(new SimpleMongoClientDatabaseFactory(mongoClient(), envConfiguration.getDatabaseName()));
+//    }
 
     @Bean
     public MongoTemplate mongoTemplate() {
-        return new MongoTemplate(new SimpleMongoClientDatabaseFactory(mongoClient(), envConfiguration.getDatabaseName()));
+        return new MongoTemplate(new SimpleMongoClientDatabaseFactory(mongoClient(), "Booking"));
     }
 
 }

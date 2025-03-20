@@ -15,11 +15,6 @@ public class EnvConfiguration {
     private String springRabbitmqPort;
     private String springRabbitmqUsername;
     private String springRabbitmqPassword;
-    private String eventServiceUrl;
-    private String userServiceUrl;
-    private String ticketServiceUrl;
-    private String paymentServiceUrl;
-    private String notificationServiceUrl;
     private String mongoUri;
     private String databaseName;
 }

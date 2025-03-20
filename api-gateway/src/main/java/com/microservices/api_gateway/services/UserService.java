@@ -13,13 +13,6 @@ public class UserService {
 
     private final EnvConfiguration envConfiguration;
 
-    public ResponseEntity<Map<String, String>> register() {
-        return null;
-    }
-
-    public ResponseEntity<Map<String, String>> login() {
-        return null;
-    }
 
     public ResponseEntity<Map<String, String>> getUserById() {
         return null;
@@ -57,19 +50,4 @@ public class UserService {
         return null;
     }
 
-    public ResponseEntity<Map<String, String>> validateEmail() {
-        return null;
-    }
-
-    public ResponseEntity<Map<String, String>> validatePhone() {
-        return null;
-    }
-
-    public ResponseEntity<Map<String, String>> resendEmailValidation() {
-        return null;
-    }
-
-    public ResponseEntity<Map<String, String>> sendPhoneValidationCode() {
-        return null;
-    }
 }

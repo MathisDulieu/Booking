@@ -36,6 +36,7 @@ public class SwaggerConfiguration {
                                         .type(SecurityScheme.Type.HTTP)
                                         .scheme("bearer")
                                         .bearerFormat("JWT")))
+                .addTagsItem(new Tag().name("Authentication").description("Endpoints for authentication, login and registration"))
                 .addTagsItem(new Tag().name("User").description("Endpoints for user account management"))
                 .addTagsItem(new Tag().name("Event").description("Endpoints for event management (creation, update, deletion, search)"))
                 .addTagsItem(new Tag().name("Ticket").description("Endpoints for ticket booking management"))
