@@ -1,8 +1,8 @@
 package com.microservices.api_gateway.configurations;
 
 import com.microservices.api_gateway.dao.UserDao;
+import com.microservices.api_gateway.models.User;
 import com.microservices.api_gateway.services.JwtTokenService;
-import com.microservices.shared_models.models.User;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

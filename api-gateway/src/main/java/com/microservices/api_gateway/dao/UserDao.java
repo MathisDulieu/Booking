@@ -1,6 +1,6 @@
 package com.microservices.api_gateway.dao;
 
-import com.microservices.shared_models.models.User;
+import com.microservices.api_gateway.models.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;

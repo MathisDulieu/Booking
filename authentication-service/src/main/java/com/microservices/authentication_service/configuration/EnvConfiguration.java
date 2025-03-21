@@ -17,4 +17,7 @@ public class EnvConfiguration {
     private String springRabbitmqPassword;
     private String mongoUri;
     private String databaseName;
+    private String mailRegisterConfirmationLink;
+    private String appEmail;
+    private String mailModifiedUsername;
 }

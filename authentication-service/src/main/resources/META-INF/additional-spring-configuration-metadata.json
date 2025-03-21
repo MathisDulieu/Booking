@@ -34,6 +34,21 @@
       "name": "booking.properties.database-name",
       "type": "java.lang.String",
       "description": "The name of the MongoDB database to use for the booking application."
+    },
+    {
+      "name": "booking.properties.mail-register-confirmation-link",
+      "type": "java.lang.String",
+      "description": "The name of the MongoDB database to use for the booking application."
+    },
+    {
+      "name": "booking.properties.app-email",
+      "type": "java.lang.String",
+      "description": "The name of the MongoDB database to use for the booking application."
+    },
+    {
+      "name": "booking.properties.mail-modified-username",
+      "type": "java.lang.String",
+      "description": "The name of the MongoDB database to use for the booking application."
     }
   ]
 }

@@ -1,12 +1,4 @@
 services:
-  shared-models:
-    build: ./shared-models
-    container_name: shared-models
-    volumes:
-      - maven_repo:/root/.m2/repository
-    networks:
-      - booking-network
-
   mongodb:
     image: mongo:latest
     container_name: mongodb
@@ -36,6 +28,12 @@ services:
       - rabbitmq_data:/var/lib/rabbitmq
     networks:
       - booking-network
+    healthcheck:
+      test: [ "CMD", "rabbitmqctl", "status" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
 
   nginx-lb:
     build: ./nginx-lb
@@ -63,12 +61,9 @@ services:
       - ALLOWED_ORIGINS=http://localhost
       - MONGO_URI=mongodb://root:rootpassword@mongodb:27017/booking?authSource=admin
       - DATABASE_NAME=Booking
-    volumes:
-      - maven_repo:/root/.m2/repository
     depends_on:
       - mongodb
       - rabbitmq
-      - shared-models
     networks:
       - booking-network
 
@@ -86,12 +81,9 @@ services:
       - ALLOWED_ORIGINS=http://localhost
       - MONGO_URI=mongodb://root:rootpassword@mongodb:27017/booking?authSource=admin
       - DATABASE_NAME=Booking
-    volumes:
-      - maven_repo:/root/.m2/repository
     depends_on:
       - mongodb
       - rabbitmq
-      - shared-models
     networks:
       - booking-network
 
@@ -109,124 +101,112 @@ services:
       - ALLOWED_ORIGINS=http://localhost
       - MONGO_URI=mongodb://root:rootpassword@mongodb:27017/booking?authSource=admin
       - DATABASE_NAME=Booking
-    volumes:
-      - maven_repo:/root/.m2/repository
+      - MAIL_REGISTER_CONFIRMATION_LINK=http://localhost/valider-email/
+      - MAIL_PASSWORD=cnbv zhqy yfej acqm
+      - MAIL_MODIFIED_USERNAME=EventHub
+      - APP_EMAIL=4webd.booking.event.hub@gmail.com
     depends_on:
-      - mongodb
-      - rabbitmq
-      - shared-models
+      rabbitmq:
+        condition: service_healthy
+      mongodb:
+        condition: service_started
     networks:
       - booking-network
 
-  event-service:
-    build: ./event-service
-    container_name: event-service
-    restart: always
-    ports:
-      - "8081:8081"
-    environment:
-      - SPRING_DATA_MONGODB_URI=mongodb://root:rootpassword@mongodb:27017/booking?authSource=admin
-      - SPRING_RABBITMQ_HOST=rabbitmq
-      - SPRING_RABBITMQ_PORT=5672
-      - SPRING_RABBITMQ_USERNAME=guest
-      - SPRING_RABBITMQ_PASSWORD=guest
-      - SERVER_PORT=8081
-    volumes:
-      - maven_repo:/root/.m2/repository
-    depends_on:
-      - mongodb
-      - rabbitmq
-      - shared-models
-    networks:
-      - booking-network
+#  event-service:
+#    build: ./event-service
+#    container_name: event-service
+#    restart: always
+#    ports:
+#      - "8081:8081"
+#    environment:
+#      - SPRING_DATA_MONGODB_URI=mongodb://root:rootpassword@mongodb:27017/booking?authSource=admin
+#      - SPRING_RABBITMQ_HOST=rabbitmq
+#      - SPRING_RABBITMQ_PORT=5672
+#      - SPRING_RABBITMQ_USERNAME=guest
+#      - SPRING_RABBITMQ_PASSWORD=guest
+#      - SERVER_PORT=8081
+#    depends_on:
+#      - mongodb
+#      - rabbitmq
+#    networks:
+#      - booking-network
 
-  notification-service:
-    build: ./notification-service
-    container_name: notification-service
-    restart: always
-    ports:
-      - "8082:8082"
-    environment:
-      - SPRING_DATA_MONGODB_URI=mongodb://root:rootpassword@mongodb:27017/booking?authSource=admin
-      - SPRING_RABBITMQ_HOST=rabbitmq
-      - SPRING_RABBITMQ_PORT=5672
-      - SPRING_RABBITMQ_USERNAME=guest
-      - SPRING_RABBITMQ_PASSWORD=guest
-      - SERVER_PORT=8082
-    volumes:
-      - maven_repo:/root/.m2/repository
-    depends_on:
-      - mongodb
-      - rabbitmq
-      - shared-models
-    networks:
-      - booking-network
+#  notification-service:
+#    build: ./notification-service
+#    container_name: notification-service
+#    restart: always
+#    ports:
+#      - "8082:8082"
+#    environment:
+#      - SPRING_DATA_MONGODB_URI=mongodb://root:rootpassword@mongodb:27017/booking?authSource=admin
+#      - SPRING_RABBITMQ_HOST=rabbitmq
+#      - SPRING_RABBITMQ_PORT=5672
+#      - SPRING_RABBITMQ_USERNAME=guest
+#      - SPRING_RABBITMQ_PASSWORD=guest
+#      - SERVER_PORT=8082
+#    depends_on:
+#      - mongodb
+#      - rabbitmq
+#    networks:
+#      - booking-network
 
-  payment-service:
-    build: ./payment-service
-    container_name: payment-service
-    restart: always
-    ports:
-      - "8083:8083"
-    environment:
-      - SPRING_DATA_MONGODB_URI=mongodb://root:rootpassword@mongodb:27017/booking?authSource=admin
-      - SPRING_RABBITMQ_HOST=rabbitmq
-      - SPRING_RABBITMQ_PORT=5672
-      - SPRING_RABBITMQ_USERNAME=guest
-      - SPRING_RABBITMQ_PASSWORD=guest
-      - SERVER_PORT=8083
-    volumes:
-      - maven_repo:/root/.m2/repository
-    depends_on:
-      - mongodb
-      - rabbitmq
-      - shared-models
-    networks:
-      - booking-network
+#  payment-service:
+#    build: ./payment-service
+#    container_name: payment-service
+#    restart: always
+#    ports:
+#      - "8083:8083"
+#    environment:
+#      - SPRING_DATA_MONGODB_URI=mongodb://root:rootpassword@mongodb:27017/booking?authSource=admin
+#      - SPRING_RABBITMQ_HOST=rabbitmq
+#      - SPRING_RABBITMQ_PORT=5672
+#      - SPRING_RABBITMQ_USERNAME=guest
+#      - SPRING_RABBITMQ_PASSWORD=guest
+#      - SERVER_PORT=8083
+#    depends_on:
+#      - mongodb
+#      - rabbitmq
+#    networks:
+#      - booking-network
 
-  ticket-service:
-    build: ./ticket-service
-    container_name: ticket-service
-    restart: always
-    ports:
-      - "8084:8084"
-    environment:
-      - SPRING_DATA_MONGODB_URI=mongodb://root:rootpassword@mongodb:27017/booking?authSource=admin
-      - SPRING_RABBITMQ_HOST=rabbitmq
-      - SPRING_RABBITMQ_PORT=5672
-      - SPRING_RABBITMQ_USERNAME=guest
-      - SPRING_RABBITMQ_PASSWORD=guest
-      - SERVER_PORT=8084
-    volumes:
-      - maven_repo:/root/.m2/repository
-    depends_on:
-      - mongodb
-      - rabbitmq
-      - shared-models
-    networks:
-      - booking-network
+#  ticket-service:
+#    build: ./ticket-service
+#    container_name: ticket-service
+#    restart: always
+#    ports:
+#      - "8084:8084"
+#    environment:
+#      - SPRING_DATA_MONGODB_URI=mongodb://root:rootpassword@mongodb:27017/booking?authSource=admin
+#      - SPRING_RABBITMQ_HOST=rabbitmq
+#      - SPRING_RABBITMQ_PORT=5672
+#      - SPRING_RABBITMQ_USERNAME=guest
+#      - SPRING_RABBITMQ_PASSWORD=guest
+#      - SERVER_PORT=8084
+#    depends_on:
+#      - mongodb
+#      - rabbitmq
+#    networks:
+#      - booking-network
 
-  user-service:
-    build: ./user-service
-    container_name: user-service
-    restart: always
-    ports:
-      - "8085:8085"
-    environment:
-      - SPRING_DATA_MONGODB_URI=mongodb://root:rootpassword@mongodb:27017/booking?authSource=admin
-      - SPRING_RABBITMQ_HOST=rabbitmq
-      - SPRING_RABBITMQ_PORT=5672
-      - SPRING_RABBITMQ_USERNAME=guest
-      - SPRING_RABBITMQ_PASSWORD=guest
-      - SERVER_PORT=8085
-    volumes:
-      - maven_repo:/root/.m2/repository
-    depends_on:
-      - mongodb
-      - rabbitmq
-      - shared-models
-    networks:
-      - booking-network
+#  user-service:
+#    build: ./user-service
+#    container_name: user-service
+#    restart: always
+#    ports:
+#      - "8085:8085"
+#    environment:
+#      - SPRING_DATA_MONGODB_URI=mongodb://root:rootpassword@mongodb:27017/booking?authSource=admin
+#      - SPRING_RABBITMQ_HOST=rabbitmq
+#      - SPRING_RABBITMQ_PORT=5672
+#      - SPRING_RABBITMQ_USERNAME=guest
+#      - SPRING_RABBITMQ_PASSWORD=guest
+#      - SERVER_PORT=8085
+#    depends_on:
+#      - mongodb
+#      - rabbitmq
+#    networks:
+#      - booking-network
 
   frontend:
     build: ./booking-frontend
@@ -242,4 +222,3 @@ networks:
 volumes:
   mongodb_data:
   rabbitmq_data:
-  maven_repo:

@@ -1,8 +1,7 @@
 package com.microservices.authentication_service.services;
 
-import com.microservices.shared_models.models.dto.request.athentication.RegisterRequest;
-import com.microservices.shared_models.models.dto.request.athentication.ResendEmailValidationRequest;
-import com.microservices.shared_models.models.dto.request.athentication.ValidateEmailRequest;
+import com.microservices.authentication_service.models.request.ResendEmailValidationRequest;
+import com.microservices.authentication_service.models.request.ValidateEmailRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

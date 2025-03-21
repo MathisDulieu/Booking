@@ -1,7 +1,7 @@
 package com.microservices.api_gateway.controllers;
 
+import com.microservices.api_gateway.models.dto.request.authentication.*;
 import com.microservices.api_gateway.services.AuthenticationService;
-import com.microservices.shared_models.models.dto.request.athentication.*;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

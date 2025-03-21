@@ -1,10 +1,12 @@
 package com.microservices.authentication_service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microservices.authentication_service.models.request.RegisterRequest;
 import com.microservices.authentication_service.services.EmailValidationService;
 import com.microservices.authentication_service.services.LoginService;
 import com.microservices.authentication_service.services.PhoneValidationService;
 import com.microservices.authentication_service.services.RegistrationService;
-import com.microservices.shared_models.models.dto.request.athentication.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.ExchangeTypes;
@@ -26,6 +28,7 @@ public class Consumer {
     private final LoginService loginService;
     private final EmailValidationService emailValidationService;
     private final PhoneValidationService phoneValidationService;
+    private final ObjectMapper objectMapper;
 
     @RabbitListener(
             bindings = @QueueBinding(
@@ -34,31 +37,30 @@ public class Consumer {
                     key = "auth.*"
             )
     )
-    public Map<String, String> handleAuthRequest(Message message, Object request) {
+    public String handleAuthRequest(String payload, Message message) {
         String routingKey = message.getMessageProperties().getReceivedRoutingKey();
         log.info("Received auth request with routing key: {}", routingKey);
+        log.debug("Request payload: {}", payload);
 
         try {
-            return switch (routingKey) {
-                case "auth.register" -> registrationService.registerUser((RegisterRequest) request);
-                case "auth.login" -> loginService.authenticateUser((LoginRequest) request);
-                case "auth.validate-email" -> emailValidationService.validateEmail((ValidateEmailRequest) request);
-                case "auth.validate-phone" -> phoneValidationService.validatePhone((ValidatePhoneRequest) request);
-                case "auth.resend-email-validation" ->
-                        emailValidationService.resendValidation((ResendEmailValidationRequest) request);
-                case "auth.send-phone-code" -> phoneValidationService.sendValidationCode();
-                default -> {
-                    log.warn("Unknown routing key: {}", routingKey);
-                    yield Map.of("error", "Unknown request type");
+            Map<String, String> result = switch (routingKey) {
+                case "auth.register" -> {
+                    RegisterRequest registerRequest = objectMapper.readValue(payload, RegisterRequest.class);
+                    yield registrationService.registerUser(registerRequest);
                 }
+                default -> throw new IllegalStateException("Unexpected value: " + routingKey);
             };
-        } catch (ClassCastException e) {
-            log.error("Invalid request format for routing key {}: {}", routingKey, e.getMessage());
-            return Map.of("error", "Invalid request format");
+
+            String response = objectMapper.writeValueAsString(result);
+            log.info("Sending response for {}: {}", routingKey, response);
+            return response;
         } catch (Exception e) {
-            log.error("Error processing request with routing key {}: {}", routingKey, e.getMessage());
-            return Map.of("error", e.getMessage());
+            log.error("Error processing request: ", e);
+            try {
+                return objectMapper.writeValueAsString(Map.of("error", e.getMessage()));
+            } catch (JsonProcessingException ex) {
+                return "{\"error\": \"Internal server error\"}";
+            }
         }
     }
-
 }

@@ -1,14 +1,12 @@
-package com.microservices.api_gateway;
+package com.microservices.api_gateway.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-import static java.util.Objects.isNull;
-
-@Component
+@Service
 @RequiredArgsConstructor
 @Slf4j
 public class Producer {
@@ -16,39 +14,29 @@ public class Producer {
     private final RabbitTemplate rabbitTemplate;
     private final ObjectMapper objectMapper;
 
-    public <T> void sendMessage(String topic, String key, T value) {
+    public <T, R> R sendAndReceive(String exchange, String routingKey, T request, Class<R> responseType) {
         try {
-            log.info("Sending message to topic: {}, key: {}", topic, key);
-            rabbitTemplate.convertAndSend(topic, key, value);
-            log.info("Message sent successfully to topic: {}", topic);
-        } catch (Exception e) {
-            log.error("Error sending message to topic: {}, key: {}: {}",
-                    topic, key, e.getMessage(), e);
-            throw new RuntimeException("Failed to send message to RabbitMQ", e);
-        }
-    }
+            String requestJson = objectMapper.writeValueAsString(request);
+            log.info("Sending message to {}.{}: {}", exchange, routingKey, requestJson);
 
-    public <T, R> R sendAndReceive(String topic, String key, T value, Class<R> responseType) {
-        try {
-            log.info("Sending request to topic: {}, key: {} and waiting for response", topic, key);
-            Object response = rabbitTemplate.convertSendAndReceive(topic, key, value);
+            Object response = rabbitTemplate.convertSendAndReceive(exchange, routingKey, requestJson);
 
-            if (isNull(response)) {
-                log.warn("No response received from topic: {}, key: {}", topic, key);
+            if (response == null) {
+                log.error("No response received from {}.{}", exchange, routingKey);
                 return null;
             }
 
-            if (responseType.isInstance(response)) {
-                return responseType.cast(response);
+            log.info("Received response from {}.{}: {}", exchange, routingKey, response);
+
+            if (response instanceof String) {
+                return objectMapper.readValue((String) response, responseType);
+            } else {
+                return objectMapper.convertValue(response, responseType);
             }
 
-            return objectMapper.convertValue(response, responseType);
-
         } catch (Exception e) {
-            log.error("Error in request to topic: {}, key: {}: {}",
-                    topic, key, e.getMessage(), e);
-            throw new RuntimeException("Failed to process message with RabbitMQ", e);
+            log.error("Error during sendAndReceive: ", e);
+            throw new RuntimeException("Communication error: " + e.getMessage(), e);
         }
     }
-
 }
