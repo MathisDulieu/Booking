@@ -7,6 +7,8 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 @Component
 @RequiredArgsConstructor
 public class UserDao {
@@ -25,6 +27,14 @@ public class UserDao {
 
     public boolean isEmailAlreadyUsed(String email) {
         return mongoTemplate.exists(new Query(Criteria.where("email").is(email)), USER_COLLECTION);
+    }
+
+    public Optional<User> findByEmail(String email) {
+        return Optional.ofNullable(mongoTemplate.findOne(new Query(Criteria.where("email").is(email)), User.class, USER_COLLECTION));
+    }
+
+    public Optional<User> findById(String userId) {
+        return Optional.ofNullable(mongoTemplate.findById(userId, User.class, USER_COLLECTION));
     }
 
 }

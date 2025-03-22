@@ -1,9 +1,8 @@
 package com.microservices.api_gateway.services;
 
-import com.microservices.api_gateway.configurations.EnvConfiguration;
+import com.microservices.api_gateway.Producer;
 import com.microservices.api_gateway.models.dto.request.authentication.*;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -11,65 +10,53 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class AuthenticationService {
 
-    private final EnvConfiguration envConfiguration;
-    private final com.microservices.api_gateway.services.Producer producer;
+    private final Producer producer;
+    private final ErrorResponseService errorResponseService;
 
-    public ResponseEntity<Map<String, String>> login(LoginRequest request) {
-        return null;
-    }
-
-    public ResponseEntity<Map<String, String>> register(RegisterRequest request) {
+    private <T> ResponseEntity<Map<String, String>> sendAuthRequest(String routingKey, T request) {
         try {
-            log.info("Tentative d'enregistrement d'un nouvel utilisateur: {}", request.getUsername());
-
             Map<String, String> response = producer.sendAndReceive(
                     "auth-exchange",
-                    "auth.register",
+                    routingKey,
                     request,
                     Map.class
             );
 
             if (response == null) {
-                log.error("Aucune réponse reçue du service d'authentification");
                 return ResponseEntity.internalServerError()
                         .body(Map.of("error", "Aucune réponse reçue du service d'authentification"));
             }
 
-            if (response.containsKey("error")) {
-                log.error("Le service d'authentification a retourné une erreur: {}", response.get("error"));
-                return ResponseEntity.badRequest().body(response);
-            }
-
-            if (response.containsKey("warning")) {
-                log.error("Le service d'authentification a retourné un warning: {}", response.get("warning"));
-                return ResponseEntity.badRequest().body(response);
-            }
-
-            log.info("Utilisateur enregistré avec succès: {}", request.getUsername());
-            return ResponseEntity.ok(response);
+            return errorResponseService.mapToResponseEntity(response);
         } catch (Exception e) {
-            log.error("Erreur lors de l'enregistrement: ", e);
             return ResponseEntity.internalServerError()
-                    .body(Map.of("error", "Erreur lors de l'enregistrement: " + e.getMessage()));
+                    .body(Map.of("error", "Erreur lors de la communication avec le service d'authentification: " + e.getMessage()));
         }
     }
 
+    public ResponseEntity<Map<String, String>> login(LoginRequest request) {
+        return sendAuthRequest("auth.login", request);
+    }
+
+    public ResponseEntity<Map<String, String>> register(RegisterRequest request) {
+        return sendAuthRequest("auth.register", request);
+    }
+
     public ResponseEntity<Map<String, String>> validateEmail(ValidateEmailRequest request) {
-        return null;
+        return sendAuthRequest("auth.validateEmail", request);
     }
 
     public ResponseEntity<Map<String, String>> validatePhone(ValidatePhoneRequest request) {
-        return null;
+        return sendAuthRequest("auth.validatePhone", request);
     }
 
     public ResponseEntity<Map<String, String>> resendEmailValidation(ResendEmailValidationRequest request) {
-        return null;
+        return sendAuthRequest("auth.resendEmailValidation", request);
     }
 
     public ResponseEntity<Map<String, String>> sendPhoneValidationCode() {
-        return null;
+        return sendAuthRequest("auth.sendPhoneValidation", Map.of());
     }
 }

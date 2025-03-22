@@ -25,23 +25,13 @@ public class RabbitMQConfiguration {
     private final EnvConfiguration envConfiguration;
     private final ObjectMapper objectMapper;
 
-//    @Bean
-//    public ConnectionFactory connectionFactory() {
-//        CachingConnectionFactory connectionFactory = new CachingConnectionFactory();
-//        connectionFactory.setHost(envConfiguration.getSpringRabbitmqHost());
-//        connectionFactory.setPort(Integer.parseInt(envConfiguration.getSpringRabbitmqPort()));
-//        connectionFactory.setUsername(envConfiguration.getSpringRabbitmqUsername());
-//        connectionFactory.setPassword(envConfiguration.getSpringRabbitmqPassword());
-//        return connectionFactory;
-//    }
-
     @Bean
     public ConnectionFactory connectionFactory() {
         CachingConnectionFactory connectionFactory = new CachingConnectionFactory();
-        connectionFactory.setHost("rabbitmq");
-        connectionFactory.setPort(5672);
-        connectionFactory.setUsername("guest");
-        connectionFactory.setPassword("guest");
+        connectionFactory.setHost(envConfiguration.getSpringRabbitmqHost());
+        connectionFactory.setPort(Integer.parseInt(envConfiguration.getSpringRabbitmqPort()));
+        connectionFactory.setUsername(envConfiguration.getSpringRabbitmqUsername());
+        connectionFactory.setPassword(envConfiguration.getSpringRabbitmqPassword());
 
         connectionFactory.setRequestedHeartBeat(30);
         connectionFactory.setConnectionTimeout(5000);

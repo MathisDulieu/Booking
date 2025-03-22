@@ -3,9 +3,11 @@ package com.microservices.authentication_service.services;
 import com.microservices.authentication_service.dao.UserDao;
 import com.microservices.authentication_service.models.User;
 import com.microservices.authentication_service.models.request.LoginRequest;
+import com.microservices.authentication_service.models.request.RegisterRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -18,25 +20,27 @@ import static java.util.Collections.singletonMap;
 public class LoginService {
 
     private final UserDao userDao;
+    private final BCryptPasswordEncoder passwordEncoder;
+    private final JwtTokenService jwtTokenService;
 
     public Map<String, String> authenticateUser(LoginRequest request) {
         Optional<User> optionalUser = userDao.findByEmail(request.getEmail());
 
         if (optionalUser.isEmpty()) {
-            return singletonMap("error", "User not found");
+            return singletonMap("NOT_FOUND", "User not found");
         }
 
         User user = optionalUser.get();
 
-        if(!user.getIsValidEmail()) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(singletonMap("error", "Email is not verified"));
+        if(!user.isValidatedEmail()) {
+            return singletonMap("FORBIDDEN", "Email is not verified");
         }
 
-        if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(singletonMap("error", "Invalid password"));
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            return singletonMap("UNAUTHORIZED", "Invalid password");
         }
 
-        return ResponseEntity.ok(singletonMap("token", jwtTokenService.generateToken(user.getId())));
+        return singletonMap("authToken", jwtTokenService.generateToken(user.getId()));
     }
 
 }

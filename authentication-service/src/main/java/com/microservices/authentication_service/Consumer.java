@@ -2,7 +2,7 @@ package com.microservices.authentication_service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.microservices.authentication_service.models.request.RegisterRequest;
+import com.microservices.authentication_service.models.request.*;
 import com.microservices.authentication_service.services.EmailValidationService;
 import com.microservices.authentication_service.services.LoginService;
 import com.microservices.authentication_service.services.PhoneValidationService;
@@ -20,7 +20,6 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 
 @Component
-@Slf4j
 @RequiredArgsConstructor
 public class Consumer {
 
@@ -39,8 +38,6 @@ public class Consumer {
     )
     public String handleAuthRequest(String payload, Message message) {
         String routingKey = message.getMessageProperties().getReceivedRoutingKey();
-        log.info("Received auth request with routing key: {}", routingKey);
-        log.debug("Request payload: {}", payload);
 
         try {
             Map<String, String> result = switch (routingKey) {
@@ -48,14 +45,30 @@ public class Consumer {
                     RegisterRequest registerRequest = objectMapper.readValue(payload, RegisterRequest.class);
                     yield registrationService.registerUser(registerRequest);
                 }
+                case "auth.login" -> {
+                    LoginRequest loginRequest = objectMapper.readValue(payload, LoginRequest.class);
+                    yield loginService.authenticateUser(loginRequest);
+                }
+                case "auth.validateEmail" -> {
+                    ValidateEmailRequest validateEmailRequest = objectMapper.readValue(payload, ValidateEmailRequest.class);
+                    yield emailValidationService.validateEmail(validateEmailRequest);
+                }
+                case "auth.resendEmailValidation" -> {
+                    ResendEmailValidationRequest resendEmailValidationRequest = objectMapper.readValue(payload, ResendEmailValidationRequest.class);
+                    yield emailValidationService.resendValidation(resendEmailValidationRequest);
+                }
+                case "auth.validatePhone" -> {
+                    ValidatePhoneRequest validatePhoneRequest = objectMapper.readValue(payload, ValidatePhoneRequest.class);
+                    yield phoneValidationService.validatePhone(validatePhoneRequest);
+                }
+                case "auth.sendPhoneValidation" -> {
+                    yield phoneValidationService.sendValidationCode();
+                }
                 default -> throw new IllegalStateException("Unexpected value: " + routingKey);
             };
 
-            String response = objectMapper.writeValueAsString(result);
-            log.info("Sending response for {}: {}", routingKey, response);
-            return response;
+            return objectMapper.writeValueAsString(result);
         } catch (Exception e) {
-            log.error("Error processing request: ", e);
             try {
                 return objectMapper.writeValueAsString(Map.of("error", e.getMessage()));
             } catch (JsonProcessingException ex) {

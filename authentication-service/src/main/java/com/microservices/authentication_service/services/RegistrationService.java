@@ -36,7 +36,7 @@ public class RegistrationService {
 
         String error = getValidationError(user);
         if (!isNull(error)) {
-            return singletonMap("error", error);
+            return singletonMap("BAD_REQUEST", error);
         }
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
