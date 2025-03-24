@@ -61,6 +61,7 @@ services:
       - ALLOWED_ORIGINS=http://localhost
       - MONGO_URI=mongodb://root:rootpassword@mongodb:27017/booking?authSource=admin
       - DATABASE_NAME=Booking
+      - JWT_SECRET_KEY=YRMCKrygcXtx1bVpEMcBKIK9LxX8aDUTUQy2XyuLRCbnoPOhxUeIPqIQW01UfC6QgEKETKf2rM9UQnc4FkRSxA
     depends_on:
       - mongodb
       - rabbitmq
@@ -81,6 +82,7 @@ services:
       - ALLOWED_ORIGINS=http://localhost
       - MONGO_URI=mongodb://root:rootpassword@mongodb:27017/booking?authSource=admin
       - DATABASE_NAME=Booking
+      - JWT_SECRET_KEY=YRMCKrygcXtx1bVpEMcBKIK9LxX8aDUTUQy2XyuLRCbnoPOhxUeIPqIQW01UfC6QgEKETKf2rM9UQnc4FkRSxA
     depends_on:
       - mongodb
       - rabbitmq
@@ -98,13 +100,13 @@ services:
       - SPRING_RABBITMQ_PORT=5672
       - SPRING_RABBITMQ_USERNAME=guest
       - SPRING_RABBITMQ_PASSWORD=guest
-      - ALLOWED_ORIGINS=http://localhost
       - MONGO_URI=mongodb://root:rootpassword@mongodb:27017/booking?authSource=admin
       - DATABASE_NAME=Booking
       - MAIL_REGISTER_CONFIRMATION_LINK=http://localhost/valider-email/
       - MAIL_PASSWORD=cnbv zhqy yfej acqm
       - MAIL_MODIFIED_USERNAME=EventHub
       - APP_EMAIL=4webd.booking.event.hub@gmail.com
+      - JWT_SECRET_KEY=YRMCKrygcXtx1bVpEMcBKIK9LxX8aDUTUQy2XyuLRCbnoPOhxUeIPqIQW01UfC6QgEKETKf2rM9UQnc4FkRSxA
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -151,24 +153,24 @@ services:
 #    networks:
 #      - booking-network
 
-#  payment-service:
-#    build: ./payment-service
-#    container_name: payment-service
-#    restart: always
-#    ports:
-#      - "8083:8083"
-#    environment:
-#      - SPRING_DATA_MONGODB_URI=mongodb://root:rootpassword@mongodb:27017/booking?authSource=admin
-#      - SPRING_RABBITMQ_HOST=rabbitmq
-#      - SPRING_RABBITMQ_PORT=5672
-#      - SPRING_RABBITMQ_USERNAME=guest
-#      - SPRING_RABBITMQ_PASSWORD=guest
-#      - SERVER_PORT=8083
-#    depends_on:
-#      - mongodb
-#      - rabbitmq
-#    networks:
-#      - booking-network
+  payment-service:
+    build: ./payment-service
+    container_name: payment-service
+    restart: always
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_DATA_MONGODB_URI=mongodb://root:rootpassword@mongodb:27017/booking?authSource=admin
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=guest
+      - SPRING_RABBITMQ_PASSWORD=guest
+      - SERVER_PORT=8083
+    depends_on:
+      - mongodb
+      - rabbitmq
+    networks:
+      - booking-network
 
 #  ticket-service:
 #    build: ./ticket-service
@@ -189,24 +191,24 @@ services:
 #    networks:
 #      - booking-network
 
-#  user-service:
-#    build: ./user-service
-#    container_name: user-service
-#    restart: always
-#    ports:
-#      - "8085:8085"
-#    environment:
-#      - SPRING_DATA_MONGODB_URI=mongodb://root:rootpassword@mongodb:27017/booking?authSource=admin
-#      - SPRING_RABBITMQ_HOST=rabbitmq
-#      - SPRING_RABBITMQ_PORT=5672
-#      - SPRING_RABBITMQ_USERNAME=guest
-#      - SPRING_RABBITMQ_PASSWORD=guest
-#      - SERVER_PORT=8085
-#    depends_on:
-#      - mongodb
-#      - rabbitmq
-#    networks:
-#      - booking-network
+  user-service:
+    build: ./user-service
+    container_name: user-service
+    restart: always
+    ports:
+      - "8085:8085"
+    environment:
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=guest
+      - SPRING_RABBITMQ_PASSWORD=guest
+      - MONGO_URI=mongodb://root:rootpassword@mongodb:27017/booking?authSource=admin
+      - DATABASE_NAME=Booking
+    depends_on:
+      - mongodb
+      - rabbitmq
+    networks:
+      - booking-network
 
   frontend:
     build: ./booking-frontend

@@ -1,6 +1,16 @@
 {
   "properties": [
     {
+      "name": "booking.properties.mongo-uri",
+      "type": "java.lang.String",
+      "description": "Description for booking.properties.mongo-uri."
+    },
+    {
+      "name": "booking.properties.database-name",
+      "type": "java.lang.String",
+      "description": "Description for booking.properties.database-name."
+    },
+    {
       "name": "booking.properties.spring-rabbitmq-host",
       "type": "java.lang.String",
       "description": "Description for booking.properties.spring-rabbitmq-host."
@@ -19,26 +29,6 @@
       "name": "booking.properties.spring-rabbitmq-password",
       "type": "java.lang.String",
       "description": "Description for booking.properties.spring-rabbitmq-password."
-    },
-    {
-      "name": "booking.properties.allowed-origins",
-      "type": "java.lang.String",
-      "description": "A list of allowed origins for CORS requests."
-    },
-    {
-      "name": "booking.properties.mongo-uri",
-      "type": "java.lang.String",
-      "description": "The MongoDB connection URI including host, port, and authentication credentials."
-    },
-    {
-      "name": "booking.properties.database-name",
-      "type": "java.lang.String",
-      "description": "The name of the MongoDB database to use for the booking application."
-    },
-    {
-      "name": "booking.properties.jwt-secret-key",
-      "type": "java.lang.String",
-      "description": "Description for booking.properties.jwt-secret-key."
     }
   ]
 }

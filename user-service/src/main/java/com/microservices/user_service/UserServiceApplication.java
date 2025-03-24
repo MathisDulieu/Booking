@@ -1,6 +1,8 @@
 package com.microservices.user_service;
 
+import com.microservices.user_service.configuration.EnvConfiguration;
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -23,7 +25,7 @@ public class UserServiceApplication {
 	@PostConstruct
 	void setLocalTimeZone() {
 		TimeZone.setDefault(TimeZone.getTimeZone("Europe/Paris"));
-		log.info("Authentication Service running in Paris timezone, started at: {}", new Date());
+		log.info("User Service running in Paris timezone, started at: {}", new Date());
 	}
 
 	@Configuration

@@ -1,13 +1,14 @@
 package com.microservices.api_gateway.services;
 
+import com.microservices.api_gateway.configurations.EnvConfiguration;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 
 import static org.springframework.util.StringUtils.hasText;
@@ -16,7 +17,13 @@ import static org.springframework.util.StringUtils.hasText;
 @RequiredArgsConstructor
 public class JwtTokenService {
 
-    public static final Key SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS512);
+    private final EnvConfiguration envConfiguration;
+
+    private Key getSigningKey() {
+        String secretString = envConfiguration.getJwtSecretKey();
+        byte[] keyBytes = secretString.getBytes(StandardCharsets.UTF_8);
+        return Keys.hmacShaKeyFor(keyBytes);
+    }
 
     public String resolveUserIdFromRequest(HttpServletRequest request) {
         String token = verifyTokenFormat(request);
@@ -24,7 +31,7 @@ public class JwtTokenService {
     }
 
     public String resolveUserIdFromToken(String token) {
-        return Jwts.parserBuilder().setSigningKey(SECRET_KEY).build().parseClaimsJws(token).getBody().getSubject();
+        return Jwts.parserBuilder().setSigningKey(getSigningKey()).build().parseClaimsJws(token).getBody().getSubject();
     }
 
     private String verifyTokenFormat(HttpServletRequest request) {
@@ -40,13 +47,12 @@ public class JwtTokenService {
 
     private boolean isValidTokenFormat(String token) {
         try {
-            Jwts.parserBuilder().setSigningKey(SECRET_KEY).build().parseClaimsJws(token);
-
+            Jwts.parserBuilder().setSigningKey(getSigningKey()).build().parseClaimsJws(token);
+            System.out.println("Token validation successful");
             return true;
         } catch (Exception exception) {
+            System.out.println("Token validation failed: " + exception.getMessage());
             return false;
         }
     }
-
 }
-

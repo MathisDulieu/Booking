@@ -1,4 +1,4 @@
-package com.microservices.authentication_service.configuration;
+package com.microservices.user_service.configuration;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
