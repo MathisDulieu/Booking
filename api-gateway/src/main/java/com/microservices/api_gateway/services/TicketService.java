@@ -24,4 +24,8 @@ public class TicketService {
     public ResponseEntity<Map<String, String>> validateTicket() {
         return null;
     }
+
+    public ResponseEntity<Map<String, String>> createTickets() {
+        return null;
+    }
 }

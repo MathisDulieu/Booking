@@ -1,4 +1,4 @@
-package com.microservices.shared_models.models;
+package com.microservices.payment_service.models;
 
 import lombok.Builder;
 import lombok.Getter;

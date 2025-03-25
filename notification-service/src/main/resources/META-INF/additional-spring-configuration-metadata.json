@@ -1,0 +1,34 @@
+{
+  "properties": [
+    {
+      "name": "booking.properties.mongo-uri",
+      "type": "java.lang.String",
+      "description": "Description for booking.properties.mongo-uri."
+    },
+    {
+      "name": "booking.properties.database-name",
+      "type": "java.lang.String",
+      "description": "Description for booking.properties.database-name."
+    },
+    {
+      "name": "booking.properties.spring-rabbitmq-host",
+      "type": "java.lang.String",
+      "description": "Description for booking.properties.spring-rabbitmq-host."
+    },
+    {
+      "name": "booking.properties.spring-rabbitmq-port",
+      "type": "java.lang.String",
+      "description": "Description for booking.properties.spring-rabbitmq-port."
+    },
+    {
+      "name": "booking.properties.spring-rabbitmq-username",
+      "type": "java.lang.String",
+      "description": "Description for booking.properties.spring-rabbitmq-username."
+    },
+    {
+      "name": "booking.properties.spring-rabbitmq-password",
+      "type": "java.lang.String",
+      "description": "Description for booking.properties.spring-rabbitmq-password."
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-package com.microservices.shared_models.models;
+package com.microservices.notification_service.models;
 
 import lombok.Builder;
 import lombok.Getter;

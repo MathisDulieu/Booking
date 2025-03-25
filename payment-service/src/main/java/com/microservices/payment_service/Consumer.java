@@ -2,6 +2,10 @@ package com.microservices.payment_service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microservices.payment_service.models.request.PayWithCardRequest;
+import com.microservices.payment_service.models.request.PayWithPaypalRequest;
+import com.microservices.payment_service.services.CardService;
+import com.microservices.payment_service.services.PaypalService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.core.ExchangeTypes;
 import org.springframework.amqp.core.Message;
@@ -17,16 +21,15 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class Consumer {
 
-    private final UserDeletionService userDeletionService;
-    private final UserMutationService userMutationService;
-    private final UserQueryService userQueryService;
+    private final CardService cardService;
+    private final PaypalService paypalService;
     private final ObjectMapper objectMapper;
 
     @RabbitListener(
             bindings = @QueueBinding(
-                    value = @Queue(value = "user.queue", durable = "true"),
-                    exchange = @Exchange(value = "user-exchange", type = ExchangeTypes.TOPIC),
-                    key = "user.*"
+                    value = @Queue(value = "payment.queue", durable = "true"),
+                    exchange = @Exchange(value = "payment-exchange", type = ExchangeTypes.TOPIC),
+                    key = "payment.*"
             )
     )
     public String handleAuthRequest(String payload, Message message) {
@@ -34,41 +37,13 @@ public class Consumer {
 
         try {
             Map<String, String> result = switch (routingKey) {
-                case "user.getUserById" -> {
-                    GetUserByIdRequest getUserByIdRequest = objectMapper.readValue(payload, GetUserByIdRequest.class);
-                    yield userQueryService.getUserById(getUserByIdRequest);
+                case "payment.payWithPaypal" -> {
+                    PayWithPaypalRequest payWithPaypalRequest = objectMapper.readValue(payload, PayWithPaypalRequest.class);
+                    yield paypalService.payWithPaypal(payWithPaypalRequest);
                 }
-                case "user.getAuthenticatedUser" -> {
-                    GetCurrentUserInfoRequest getCurrentUserInfoRequest = objectMapper.readValue(payload, GetCurrentUserInfoRequest.class);
-                    yield userQueryService.getCurrentUserInfo(getCurrentUserInfoRequest);
-                }
-                case "user.deleteCurrentUser" -> {
-                    DeleteCurrentUserRequest deleteCurrentUserRequest = objectMapper.readValue(payload, DeleteCurrentUserRequest.class);
-                    yield userDeletionService.deleteCurrentUser(deleteCurrentUserRequest);
-                }
-                case "user.updateUsername" -> {
-                    UpdateUsernameRequest updateUsernameRequest = objectMapper.readValue(payload, UpdateUsernameRequest.class);
-                    yield userMutationService.updateUsername(updateUsernameRequest);
-                }
-                case "user.updateEmail" -> {
-                    UpdateEmailRequest updateEmailRequest = objectMapper.readValue(payload, UpdateEmailRequest.class);
-                    yield userMutationService.updateEmail(updateEmailRequest);
-                }
-                case "user.updatePhone" -> {
-                    UpdatePhoneRequest updatePhoneRequest = objectMapper.readValue(payload, UpdatePhoneRequest.class);
-                    yield userMutationService.updatePhone(updatePhoneRequest);
-                }
-                case "user.updatePassword" -> {
-                    UpdatePasswordRequest updatePasswordRequest = objectMapper.readValue(payload, UpdatePasswordRequest.class);
-                    yield userMutationService.updatePassword(updatePasswordRequest);
-                }
-                case "user.updateUser" -> {
-                    UpdateUserRequest updateUserRequest = objectMapper.readValue(payload, UpdateUserRequest.class);
-                    yield userMutationService.updateUser(updateUserRequest);
-                }
-                case "user.createUser" -> {
-                    CreateUserRequest createUserRequest = objectMapper.readValue(payload, CreateUserRequest.class);
-                    yield userMutationService.createUser(createUserRequest);
+                case "payment.payWithCard" -> {
+                    PayWithCardRequest payWithCardRequest = objectMapper.readValue(payload, PayWithCardRequest.class);
+                    yield cardService.payWithCard(payWithCardRequest);
                 }
                 default -> throw new IllegalStateException("Unexpected value: " + routingKey);
             };
