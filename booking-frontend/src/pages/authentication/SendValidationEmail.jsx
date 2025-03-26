@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Eye, EyeOff, Check, X, Mail, Clock, AlertCircle, CheckCircle, LogIn } from 'lucide-react';
+import { ResendEmailValidationRequest } from '../../hooks/AuthenticationHooks';
 
 function SendValidationEmail() {
     const [email, setEmail] = useState('');
@@ -39,8 +40,7 @@ function SendValidationEmail() {
         setCanSend(false);
 
         try {
-            await new Promise(resolve => setTimeout(resolve, 1500));
-
+            await  ResendEmailValidationRequest({ email });
             setIsSent(true);
             setCanSend(false);
             setCountdown(60);

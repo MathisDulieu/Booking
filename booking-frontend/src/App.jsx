@@ -36,7 +36,7 @@ export default function App() {
     useEffect(() => {
         getUserDetails().then(() => {
             setIsLoading(false);
-            setIsAuthenticated(true)
+            setIsAuthenticated(false)
         });
     }, []);
 

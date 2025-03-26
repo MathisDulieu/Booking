@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { AlertCircle, CheckCircle, Clock, LogIn, Mail, RefreshCw } from 'lucide-react';
+import { ValidateEmailRequest } from '../../hooks/AuthenticationHooks';
+
 
 function ValidEmail() {
     const [token, setToken] = useState('');
@@ -8,9 +10,15 @@ function ValidEmail() {
     const [countdown, setCountdown] = useState(5);
 
     useEffect(() => {
+        const pathSegments = window.location.pathname.split('/');
+        const tokenFromUrl = pathSegments[pathSegments.length - 1];
+        console.log(`Token from URL: ${tokenFromUrl}`);
+        /*
         const urlParams = new URLSearchParams(window.location.search);
+
         const tokenFromUrl = urlParams.get('token');
 
+        console.log(`Token from URL: ${tokenFromUrl}`);*/
         if (tokenFromUrl) {
             setToken(tokenFromUrl);
             validateEmail(tokenFromUrl);
@@ -22,13 +30,15 @@ function ValidEmail() {
 
     const validateEmail = async (token) => {
         try {
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            console.log('Validating email...');
+            await ValidateEmailRequest(token);
 
             setStatus('success');
             setMessage('Votre adresse e-mail a été validée avec succès !');
 
             startRedirectCountdown();
         } catch (error) {
+            console.error(error);
             setStatus('error');
             setMessage(
                 error.message ||
