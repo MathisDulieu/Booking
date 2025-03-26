@@ -3,32 +3,32 @@
     {
       "name": "booking.properties.mongo-uri",
       "type": "java.lang.String",
-      "description": "Description for booking.properties.mongo-uri."
+      "description": "The MongoDB connection URI including host, port, and authentication credentials for the booking service."
     },
     {
       "name": "booking.properties.database-name",
       "type": "java.lang.String",
-      "description": "Description for booking.properties.database-name."
+      "description": "The name of the MongoDB database used to store booking and event data."
     },
     {
       "name": "booking.properties.spring-rabbitmq-host",
       "type": "java.lang.String",
-      "description": "Description for booking.properties.spring-rabbitmq-host."
+      "description": "The hostname or IP address of the RabbitMQ server used for asynchronous messaging between services."
     },
     {
       "name": "booking.properties.spring-rabbitmq-port",
       "type": "java.lang.String",
-      "description": "Description for booking.properties.spring-rabbitmq-port."
+      "description": "The port number on which the RabbitMQ server is running (default: 5672)."
     },
     {
       "name": "booking.properties.spring-rabbitmq-username",
       "type": "java.lang.String",
-      "description": "Description for booking.properties.spring-rabbitmq-username."
+      "description": "The username used for authenticating with the RabbitMQ server."
     },
     {
       "name": "booking.properties.spring-rabbitmq-password",
       "type": "java.lang.String",
-      "description": "Description for booking.properties.spring-rabbitmq-password."
+      "description": "The password used for authenticating with the RabbitMQ server."
     }
   ]
 }

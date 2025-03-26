@@ -3,22 +3,22 @@
     {
       "name": "booking.properties.spring-rabbitmq-host",
       "type": "java.lang.String",
-      "description": "Description for booking.properties.spring-rabbitmq-host."
+      "description": "The hostname or IP address of the RabbitMQ server used for event messaging."
     },
     {
       "name": "booking.properties.spring-rabbitmq-port",
       "type": "java.lang.String",
-      "description": "Description for booking.properties.spring-rabbitmq-port."
+      "description": "The port number on which the RabbitMQ server is running (default: 5672)."
     },
     {
       "name": "booking.properties.spring-rabbitmq-username",
       "type": "java.lang.String",
-      "description": "Description for booking.properties.spring-rabbitmq-username."
+      "description": "The username used for authenticating with the RabbitMQ server."
     },
     {
       "name": "booking.properties.spring-rabbitmq-password",
       "type": "java.lang.String",
-      "description": "Description for booking.properties.spring-rabbitmq-password."
+      "description": "The password used for authenticating with the RabbitMQ server."
     },
     {
       "name": "booking.properties.mongo-uri",
@@ -33,22 +33,22 @@
     {
       "name": "booking.properties.mail-register-confirmation-link",
       "type": "java.lang.String",
-      "description": "The name of the MongoDB database to use for the booking application."
+      "description": "The base URL for the email confirmation link sent to users during registration."
     },
     {
       "name": "booking.properties.app-email",
       "type": "java.lang.String",
-      "description": "The name of the MongoDB database to use for the booking application."
+      "description": "The email address used as the sender for all application-generated emails."
     },
     {
       "name": "booking.properties.mail-modified-username",
       "type": "java.lang.String",
-      "description": "The name of the MongoDB database to use for the booking application."
+      "description": "The base URL for the notification link sent when a username has been modified."
     },
     {
       "name": "booking.properties.jwt-secret-key",
       "type": "java.lang.String",
-      "description": "Description for booking.properties.jwt-secret-key."
+      "description": "The secret key used for signing and verifying JWT tokens for authentication and authorization."
     }
   ]
 }

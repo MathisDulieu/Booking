@@ -1,15 +1,11 @@
 package com.microservices.user_service.services;
 
 import com.microservices.user_service.UuidProvider;
-import com.microservices.user_service.configuration.EnvConfiguration;
 import com.microservices.user_service.dao.UserDao;
 import com.microservices.user_service.models.User;
 import com.microservices.user_service.models.UserRole;
 import com.microservices.user_service.models.request.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.mail.MailException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 

@@ -172,24 +172,24 @@ services:
     networks:
       - booking-network
 
-#  ticket-service:
-#    build: ./ticket-service
-#    container_name: ticket-service
-#    restart: always
-#    ports:
-#      - "8084:8084"
-#    environment:
-#      - SPRING_DATA_MONGODB_URI=mongodb://root:rootpassword@mongodb:27017/booking?authSource=admin
-#      - SPRING_RABBITMQ_HOST=rabbitmq
-#      - SPRING_RABBITMQ_PORT=5672
-#      - SPRING_RABBITMQ_USERNAME=guest
-#      - SPRING_RABBITMQ_PASSWORD=guest
-#      - SERVER_PORT=8084
-#    depends_on:
-#      - mongodb
-#      - rabbitmq
-#    networks:
-#      - booking-network
+  ticket-service:
+    build: ./ticket-service
+    container_name: ticket-service
+    restart: always
+    ports:
+      - "8084:8084"
+    environment:
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=guest
+      - SPRING_RABBITMQ_PASSWORD=guest
+      - MONGO_URI=mongodb://root:rootpassword@mongodb:27017/booking?authSource=admin
+      - DATABASE_NAME=Booking
+    depends_on:
+      - mongodb
+      - rabbitmq
+    networks:
+      - booking-network
 
   user-service:
     build: ./user-service

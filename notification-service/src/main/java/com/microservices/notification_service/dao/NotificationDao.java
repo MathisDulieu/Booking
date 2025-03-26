@@ -1,7 +1,6 @@
 package com.microservices.notification_service.dao;
 
 import com.microservices.notification_service.models.Notification;
-import com.microservices.notification_service.models.NotificationPreferences;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -30,13 +29,6 @@ public class NotificationDao {
         query.limit(5);
 
         return mongoTemplate.find(query, Notification.class, NOTIFICATION_COLLECTION);
-    }
-
-    public boolean isNotAcceptedSent(boolean isSentByEmail, boolean isSentBySms, NotificationPreferences notificationPreferences) {
-        boolean emailAccepted = isSentByEmail && notificationPreferences.isEmail();
-        boolean smsAccepted = isSentBySms && notificationPreferences.isSms();
-
-        return emailAccepted || smsAccepted;
     }
 
 }

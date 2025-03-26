@@ -25,7 +25,7 @@ public class EventServiceApplication {
 	@PostConstruct
 	void setLocalTimeZone() {
 		TimeZone.setDefault(TimeZone.getTimeZone("Europe/Paris"));
-		log.info("Notification Service running in Paris timezone, started at: {}", new Date());
+		log.info("Event Service running in Paris timezone, started at: {}", new Date());
 	}
 
 	@Configuration

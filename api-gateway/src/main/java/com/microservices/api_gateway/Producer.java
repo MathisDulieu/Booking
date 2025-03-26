@@ -18,10 +18,6 @@ public class Producer {
 
             Object response = rabbitTemplate.convertSendAndReceive(exchange, routingKey, requestJson);
 
-            if (response == null) {
-                return null;
-            }
-
             if (response instanceof String) {
                 return objectMapper.readValue((String) response, responseType);
             } else {

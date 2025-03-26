@@ -15,6 +15,7 @@ public class AuthenticationService {
     private final Producer producer;
     private final ErrorResponseService errorResponseService;
 
+    @SuppressWarnings("unchecked")
     private <T> ResponseEntity<Map<String, String>> sendAuthRequest(String routingKey, T request) {
         try {
             Map<String, String> response = producer.sendAndReceive(
@@ -26,13 +27,13 @@ public class AuthenticationService {
 
             if (response == null) {
                 return ResponseEntity.internalServerError()
-                        .body(Map.of("error", "Aucune réponse reçue du service d'authentification"));
+                        .body(Map.of("error", "No response received from authentication service"));
             }
 
             return errorResponseService.mapToResponseEntity(response);
         } catch (Exception e) {
             return ResponseEntity.internalServerError()
-                    .body(Map.of("error", "Erreur lors de la communication avec le service d'authentification: " + e.getMessage()));
+                    .body(Map.of("error", "Error communicating with authentication service: " + e.getMessage()));
         }
     }
 

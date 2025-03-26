@@ -1,7 +1,6 @@
 package com.microservices.payment_service.dao;
 
 import com.microservices.payment_service.models.Event;
-import com.microservices.payment_service.models.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -16,9 +15,9 @@ public class EventDao {
 
     private static final String EVENT_COLLECTION = "EVENTS";
 
-    public boolean existsById(String id) {
+    public boolean doesNotExistsById(String id) {
         Query query = new Query(Criteria.where("_id").is(id));
-        return mongoTemplate.exists(query, Event.class, EVENT_COLLECTION);
+        return !mongoTemplate.exists(query, Event.class, EVENT_COLLECTION);
     }
 
 }

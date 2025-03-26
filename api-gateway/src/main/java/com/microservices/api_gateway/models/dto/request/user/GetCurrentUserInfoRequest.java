@@ -1,13 +1,10 @@
 package com.microservices.api_gateway.models.dto.request.user;
 
-import com.microservices.api_gateway.models.NotificationPreferences;
 import com.microservices.api_gateway.models.enums.UserRole;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.time.LocalDateTime;
 
 @Getter
 @Setter

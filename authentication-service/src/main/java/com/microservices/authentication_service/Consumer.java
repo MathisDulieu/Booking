@@ -8,7 +8,6 @@ import com.microservices.authentication_service.services.LoginService;
 import com.microservices.authentication_service.services.PhoneValidationService;
 import com.microservices.authentication_service.services.RegistrationService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.ExchangeTypes;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.Exchange;
@@ -61,9 +60,7 @@ public class Consumer {
                     ValidatePhoneRequest validatePhoneRequest = objectMapper.readValue(payload, ValidatePhoneRequest.class);
                     yield phoneValidationService.validatePhone(validatePhoneRequest);
                 }
-                case "auth.sendPhoneValidation" -> {
-                    yield phoneValidationService.sendValidationCode();
-                }
+                case "auth.sendPhoneValidation" -> phoneValidationService.sendValidationCode();
                 default -> throw new IllegalStateException("Unexpected value: " + routingKey);
             };
 

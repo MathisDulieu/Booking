@@ -1,6 +1,5 @@
 package com.microservices.api_gateway.models.dto.response.user;
 
-import com.microservices.api_gateway.models.NotificationPreferences;
 import com.microservices.api_gateway.models.enums.UserRole;
 import lombok.*;
 

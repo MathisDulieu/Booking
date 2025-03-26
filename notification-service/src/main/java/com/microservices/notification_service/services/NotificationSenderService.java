@@ -4,6 +4,7 @@ import com.microservices.notification_service.UuidProvider;
 import com.microservices.notification_service.dao.NotificationDao;
 import com.microservices.notification_service.dao.UserDao;
 import com.microservices.notification_service.models.Notification;
+import com.microservices.notification_service.models.NotificationPreferences;
 import com.microservices.notification_service.models.NotificationType;
 import com.microservices.notification_service.models.User;
 import com.microservices.notification_service.models.request.SendNotificationRequest;
@@ -41,7 +42,7 @@ public class NotificationSenderService {
             return singletonMap("BAD_REQUEST", "Invalid notification type");
         }
 
-        if (notificationDao.isNotAcceptedSent(request.isSentByEmail(), request.isSentBySMS(), user.get().getNotificationPreferences())) {
+        if (isNotAcceptedSent(request.isSentByEmail(), request.isSentBySMS(), user.get().getNotificationPreferences())) {
             return singletonMap("BAD_REQUEST", "User has not accepted this notification method");
         }
 
@@ -68,6 +69,13 @@ public class NotificationSenderService {
                 .isSentBySMS(request.isSentBySMS())
                 .isSentByEmail(request.isSentByEmail())
                 .build();
+    }
+
+    private boolean isNotAcceptedSent(boolean isSentByEmail, boolean isSentBySms, NotificationPreferences notificationPreferences) {
+        boolean emailAccepted = isSentByEmail && notificationPreferences.isEmail();
+        boolean smsAccepted = isSentBySms && notificationPreferences.isSms();
+
+        return emailAccepted || smsAccepted;
     }
 
 }

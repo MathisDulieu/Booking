@@ -1,6 +1,5 @@
 package com.microservices.user_service.models.response;
 
-import com.microservices.user_service.models.NotificationPreferences;
 import com.microservices.user_service.models.UserRole;
 import lombok.*;
 

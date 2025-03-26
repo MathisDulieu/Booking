@@ -1,11 +1,10 @@
 package com.microservices.user_service.models.request;
 
-import com.microservices.user_service.models.NotificationPreferences;
 import com.microservices.user_service.models.UserRole;
-import lombok.*;
-import org.springframework.data.annotation.Id;
-
-import java.time.LocalDateTime;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
 @Setter

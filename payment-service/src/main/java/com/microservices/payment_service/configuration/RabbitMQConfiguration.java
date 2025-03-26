@@ -3,7 +3,7 @@ package com.microservices.payment_service.configuration;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.amqp.core.*;
+import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -52,24 +52,6 @@ public class RabbitMQConfiguration {
         rabbitTemplate.setMessageConverter(messageConverter);
         rabbitTemplate.setReplyTimeout(10000);
         return rabbitTemplate;
-    }
-
-    @Bean
-    public TopicExchange authExchange() {
-        return new TopicExchange("auth-exchange", true, false);
-    }
-
-    @Bean
-    public Queue authQueue() {
-        return QueueBuilder.durable("auth.queue").build();
-    }
-
-    @Bean
-    public Binding authBinding(Queue authQueue, TopicExchange authExchange) {
-        return BindingBuilder
-                .bind(authQueue)
-                .to(authExchange)
-                .with("auth.*");
     }
 
     @Bean

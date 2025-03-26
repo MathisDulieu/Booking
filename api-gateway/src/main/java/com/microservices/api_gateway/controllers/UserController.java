@@ -108,7 +108,7 @@ public class UserController {
         return userService.getUserById(userId);
     }
 
-    @PutMapping("/private/admin/user/")
+    @PutMapping("/private/admin/user")
     @Operation(
             tags = {"User"},
             summary = "Update un utilisateur par son id",

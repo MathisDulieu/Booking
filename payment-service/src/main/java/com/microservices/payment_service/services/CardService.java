@@ -68,14 +68,14 @@ public class CardService {
             return "User with ID " + request.getUserId() + " does not exist";
         }
 
-        if (!eventDao.existsById(request.getEventId())) {
+        if (eventDao.doesNotExistsById(request.getEventId())) {
             return "Event with ID " + request.getEventId() + " does not exist";
         }
 
         List<String> ticketsIds = request.getTicketsIds();
         if (ticketsIds != null && !ticketsIds.isEmpty()) {
             for (String ticketId : ticketsIds) {
-                if (!ticketDao.existsById(ticketId)) {
+                if (ticketDao.doesNotExistsById(ticketId)) {
                     return "Ticket with ID " + ticketId + " does not exist";
                 }
             }

@@ -21,9 +21,6 @@ public class User {
     private boolean isValidatedEmail;
     private boolean isValidatedPhoneNumber;
 
-    private String phoneCode;
-    private LocalDateTime phoneCodeValidity;
-
     @Builder.Default
     private NotificationPreferences notificationPreferences = NotificationPreferences.builder().build();
 

@@ -48,10 +48,8 @@ public class JwtTokenService {
     private boolean isValidTokenFormat(String token) {
         try {
             Jwts.parserBuilder().setSigningKey(getSigningKey()).build().parseClaimsJws(token);
-            System.out.println("Token validation successful");
             return true;
         } catch (Exception exception) {
-            System.out.println("Token validation failed: " + exception.getMessage());
             return false;
         }
     }

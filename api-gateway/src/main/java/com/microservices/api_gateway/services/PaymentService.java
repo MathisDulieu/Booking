@@ -1,7 +1,6 @@
 package com.microservices.api_gateway.services;
 
 import com.microservices.api_gateway.Producer;
-import com.microservices.api_gateway.configurations.EnvConfiguration;
 import com.microservices.api_gateway.models.dto.request.payment.PayWithCardRequest;
 import com.microservices.api_gateway.models.dto.request.payment.PayWithPaypalRequest;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +16,7 @@ public class PaymentService {
     private final Producer producer;
     private final ErrorResponseService errorResponseService;
 
+    @SuppressWarnings("unchecked")
     private <T> ResponseEntity<Map<String, String>> sendPaymentRequest(String routingKey, T request) {
         try {
             Map<String, String> response = producer.sendAndReceive(
@@ -28,13 +28,13 @@ public class PaymentService {
 
             if (response == null) {
                 return ResponseEntity.internalServerError()
-                        .body(Map.of("error", "Aucune réponse reçue du service de paiement"));
+                        .body(Map.of("error", "No response received from the payment service"));
             }
 
             return errorResponseService.mapToResponseEntity(response);
         } catch (Exception e) {
             return ResponseEntity.internalServerError()
-                    .body(Map.of("error", "Erreur lors de la communication avec le service de paiement : " + e.getMessage()));
+                    .body(Map.of("error", "Error communicating with the payment service: " + e.getMessage()));
         }
     }
 

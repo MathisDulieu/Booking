@@ -3,13 +3,11 @@ package com.microservices.api_gateway.services;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microservices.api_gateway.Producer;
-import com.microservices.api_gateway.configurations.EnvConfiguration;
 import com.microservices.api_gateway.models.User;
 import com.microservices.api_gateway.models.dto.request.user.*;
 import com.microservices.api_gateway.models.dto.response.user.GetCurrentUserInfoResponse;
 import com.microservices.api_gateway.models.dto.response.user.GetUserByIdResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -25,6 +23,7 @@ public class UserService {
     private final Producer producer;
     private final ErrorResponseService errorResponseService;
 
+    @SuppressWarnings("unchecked")
     private <T> ResponseEntity<Map<String, String>> sendUserRequest(String routingKey, T request) {
         try {
             Map<String, String> response = producer.sendAndReceive(
@@ -36,17 +35,17 @@ public class UserService {
 
             if (response == null) {
                 return ResponseEntity.internalServerError()
-                        .body(Map.of("error", "Aucune réponse reçue du service utilisateur"));
+                        .body(Map.of("error", "No response received from the user service"));
             }
 
             return errorResponseService.mapToResponseEntity(response);
         } catch (Exception e) {
             return ResponseEntity.internalServerError()
-                    .body(Map.of("error", "Erreur lors de la communication avec le service utilisateur : " + e.getMessage()));
+                    .body(Map.of("error", "Error communicating with the user service: " + e.getMessage()));
         }
     }
 
-    public <T, R> ResponseEntity<Map<String, R>> sendAndProcessUserRequest(String endpoint, T request, Class<R> responseClass) throws JsonProcessingException {
+    private <T, R> ResponseEntity<Map<String, R>> sendAndProcessUserRequest(String endpoint, T request, Class<R> responseClass) throws JsonProcessingException {
         ResponseEntity<Map<String, String>> response = sendUserRequest(endpoint, request);
         HttpStatusCode status = response.getStatusCode();
         Map<String, String> responseBody = response.getBody();

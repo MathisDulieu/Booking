@@ -3,17 +3,13 @@ package com.microservices.api_gateway.services;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microservices.api_gateway.Producer;
-import com.microservices.api_gateway.configurations.EnvConfiguration;
 import com.microservices.api_gateway.models.User;
 import com.microservices.api_gateway.models.dto.request.notification.GetCurrentUserNotificationsRequest;
 import com.microservices.api_gateway.models.dto.request.notification.GetUserNotificationsRequest;
 import com.microservices.api_gateway.models.dto.request.notification.SendNotificationRequest;
 import com.microservices.api_gateway.models.dto.request.notification.UpdateNotificationPreferencesRequest;
-import com.microservices.api_gateway.models.dto.request.payment.PayWithCardRequest;
-import com.microservices.api_gateway.models.dto.request.payment.PayWithPaypalRequest;
 import com.microservices.api_gateway.models.dto.response.notification.GetCurrentUserNotificationsResponse;
 import com.microservices.api_gateway.models.dto.response.notification.GetUserNotificationsResponse;
-import com.microservices.api_gateway.models.dto.response.user.GetUserByIdResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +26,7 @@ public class NotificationService {
     private final Producer producer;
     private final ErrorResponseService errorResponseService;
 
+    @SuppressWarnings("unchecked")
     private <T> ResponseEntity<Map<String, String>> sendNotificationRequest(String routingKey, T request) {
         try {
             Map<String, String> response = producer.sendAndReceive(
@@ -41,17 +38,17 @@ public class NotificationService {
 
             if (response == null) {
                 return ResponseEntity.internalServerError()
-                        .body(Map.of("error", "Aucune réponse reçue du service de notification"));
+                        .body(Map.of("error", "No response received from the notification service"));
             }
 
             return errorResponseService.mapToResponseEntity(response);
         } catch (Exception e) {
             return ResponseEntity.internalServerError()
-                    .body(Map.of("error", "Erreur lors de la communication avec le service de notification : " + e.getMessage()));
+                    .body(Map.of("error", "Error communicating with the notification service: " + e.getMessage()));
         }
     }
 
-    public <T, R> ResponseEntity<Map<String, R>> sendAndProcessNotificationRequest(String endpoint, T request, Class<R> responseClass) throws JsonProcessingException {
+    private <T, R> ResponseEntity<Map<String, R>> sendAndProcessNotificationRequest(String endpoint, T request, Class<R> responseClass) throws JsonProcessingException {
         ResponseEntity<Map<String, String>> response = sendNotificationRequest(endpoint, request);
         HttpStatusCode status = response.getStatusCode();
         Map<String, String> responseBody = response.getBody();

@@ -2,7 +2,6 @@ package com.microservices.api_gateway.controllers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.microservices.api_gateway.models.User;
-import com.microservices.api_gateway.models.dto.request.notification.GetCurrentUserNotificationsRequest;
 import com.microservices.api_gateway.models.dto.request.notification.GetUserNotificationsRequest;
 import com.microservices.api_gateway.models.dto.request.notification.SendNotificationRequest;
 import com.microservices.api_gateway.models.dto.request.notification.UpdateNotificationPreferencesRequest;

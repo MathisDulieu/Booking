@@ -22,6 +22,7 @@ public class EventService {
     private final Producer producer;
     private final ErrorResponseService errorResponseService;
 
+    @SuppressWarnings("unchecked")
     private <T> ResponseEntity<Map<String, String>> sendEventRequest(String routingKey, T request) {
         try {
             Map<String, String> response = producer.sendAndReceive(
@@ -33,25 +34,25 @@ public class EventService {
 
             if (response == null) {
                 return ResponseEntity.internalServerError()
-                        .body(Map.of("error", "Aucune réponse reçue du service d'événement"));
+                        .body(Map.of("error", "No response received from event service"));
             }
 
             return errorResponseService.mapToResponseEntity(response);
         } catch (Exception e) {
             return ResponseEntity.internalServerError()
-                    .body(Map.of("error", "Erreur lors de la communication avec le service d'événement: " + e.getMessage()));
+                    .body(Map.of("error", "Error communicating with event service: " + e.getMessage()));
         }
     }
 
-    public <T, R> ResponseEntity<Map<String, R>> sendAndProcessEventRequest(String endpoint, T request, Class<R> responseClass) throws JsonProcessingException {
+    private <T, R> ResponseEntity<Map<String, R>> sendAndProcessEventRequest(String endpoint, T request, Class<R> responseClass) throws JsonProcessingException {
         try {
             ResponseEntity<Map<String, String>> response = sendEventRequest(endpoint, request);
             HttpStatusCode status = response.getStatusCode();
             Map<String, String> responseBody = response.getBody();
 
-            if (responseBody == null || responseBody.isEmpty()) {
+            if (responseBody.isEmpty()) {
                 return ResponseEntity.status(HttpStatusCode.valueOf(500))
-                        .body(singletonMap("error", createErrorResponse(responseClass, "Réponse vide reçue du service")));
+                        .body(singletonMap("error", createErrorResponse(responseClass, "Empty response received from service")));
             }
 
             String key = responseBody.keySet().iterator().next();
@@ -59,7 +60,7 @@ public class EventService {
 
             if (jsonValue == null || !(jsonValue.trim().startsWith("{") || jsonValue.trim().startsWith("["))) {
                 return ResponseEntity.status(HttpStatusCode.valueOf(500))
-                        .body(singletonMap("error", createErrorResponse(responseClass, "Erreur du service: " + jsonValue)));
+                        .body(singletonMap("error", createErrorResponse(responseClass, "Service error: " + jsonValue)));
             }
 
             ObjectMapper objectMapper = new ObjectMapper();
@@ -70,7 +71,7 @@ public class EventService {
             return ResponseEntity.status(status).body(result);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatusCode.valueOf(500))
-                    .body(singletonMap("error", createErrorResponse(responseClass, "Erreur de traitement: " + e.getMessage())));
+                    .body(singletonMap("error", createErrorResponse(responseClass, "Processing error: " + e.getMessage())));
         }
     }
 

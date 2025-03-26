@@ -55,24 +55,6 @@ public class RabbitMQConfiguration {
     }
 
     @Bean
-    public TopicExchange authExchange() {
-        return new TopicExchange("auth-exchange", true, false);
-    }
-
-    @Bean
-    public Queue authQueue() {
-        return QueueBuilder.durable("auth.queue").build();
-    }
-
-    @Bean
-    public Binding authBinding(Queue authQueue, TopicExchange authExchange) {
-        return BindingBuilder
-                .bind(authQueue)
-                .to(authExchange)
-                .with("auth.*");
-    }
-
-    @Bean
     public AmqpAdmin amqpAdmin(ConnectionFactory connectionFactory) {
         return new RabbitAdmin(connectionFactory);
     }

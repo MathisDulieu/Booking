@@ -5,8 +5,6 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
 
-import java.time.LocalDateTime;
-
 @Getter
 @Setter
 @Builder
@@ -20,9 +18,6 @@ public class User {
     private String phoneNumber;
     private boolean isValidatedEmail;
     private boolean isValidatedPhoneNumber;
-
-    private String phoneCode;
-    private LocalDateTime phoneCodeValidity;
 
     @Builder.Default
     private NotificationPreferences notificationPreferences = NotificationPreferences.builder().build();

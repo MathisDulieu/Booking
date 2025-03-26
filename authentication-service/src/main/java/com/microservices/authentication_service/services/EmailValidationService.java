@@ -6,8 +6,6 @@ import com.microservices.authentication_service.models.User;
 import com.microservices.authentication_service.models.request.ResendEmailValidationRequest;
 import com.microservices.authentication_service.models.request.ValidateEmailRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.mail.MailException;
 import org.springframework.stereotype.Service;
 
@@ -74,7 +72,7 @@ public class EmailValidationService {
         String body = getRegisterConfirmationEmailBody(emailConfirmationToken, user.getUsername());
 
         try {
-            emailService.sendEmail(user.getEmail(), "Confirmez votre inscription à EventHub", body);
+            emailService.sendEmail(user.getEmail(), "Confirm your EventHub registration", body);
         } catch (MailException e) {
             return "Failed to send the registration confirmation email. Please try again later.";
         }
@@ -87,11 +85,11 @@ public class EmailValidationService {
 
         return "<html>"
                 + "<body>"
-                + "<h2>Bienvenue " + username + " !</h2>"
-                + "<p>Merci de vous être inscrit sur notre application.</p>"
-                + "<p>Pour activer votre compte, veuillez cliquer sur le lien suivant :</p>"
-                + "<p><a href=\"" + confirmationLink + "\">Confirmer mon email</a></p>"
-                + "<p>Si vous n'avez pas créé de compte, veuillez ignorer cet email.</p>"
+                + "<h2>Welcome " + username + "!</h2>"
+                + "<p>Thank you for registering on our application.</p>"
+                + "<p>To activate your account, please click on the following link:</p>"
+                + "<p><a href=\"" + confirmationLink + "\">Confirm my email</a></p>"
+                + "<p>If you did not create an account, please ignore this email.</p>"
                 + "</body>"
                 + "</html>";
     }

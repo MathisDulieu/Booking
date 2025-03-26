@@ -1,8 +1,0 @@
-FROM maven:3.8-openjdk-17
-
-WORKDIR /app
-
-COPY . .
-
-# Installer les modèles partagés dans le repo local Maven
-RUN mvn clean install -DskipTests
