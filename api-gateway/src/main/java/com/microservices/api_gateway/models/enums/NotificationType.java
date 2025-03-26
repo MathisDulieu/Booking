@@ -1,4 +1,4 @@
-package com.microservices.api_gateway.models;
+package com.microservices.api_gateway.models.enums;
 
 public enum NotificationType {
     INFORMATION,

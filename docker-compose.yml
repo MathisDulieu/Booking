@@ -115,24 +115,24 @@ services:
     networks:
       - booking-network
 
-#  event-service:
-#    build: ./event-service
-#    container_name: event-service
-#    restart: always
-#    ports:
-#      - "8081:8081"
-#    environment:
-#      - SPRING_DATA_MONGODB_URI=mongodb://root:rootpassword@mongodb:27017/booking?authSource=admin
-#      - SPRING_RABBITMQ_HOST=rabbitmq
-#      - SPRING_RABBITMQ_PORT=5672
-#      - SPRING_RABBITMQ_USERNAME=guest
-#      - SPRING_RABBITMQ_PASSWORD=guest
-#      - SERVER_PORT=8081
-#    depends_on:
-#      - mongodb
-#      - rabbitmq
-#    networks:
-#      - booking-network
+  event-service:
+    build: ./event-service
+    container_name: event-service
+    restart: always
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=guest
+      - SPRING_RABBITMQ_PASSWORD=guest
+      - MONGO_URI=mongodb://root:rootpassword@mongodb:27017/booking?authSource=admin
+      - DATABASE_NAME=Booking
+    depends_on:
+      - mongodb
+      - rabbitmq
+    networks:
+      - booking-network
 
   notification-service:
     build: ./notification-service
@@ -214,6 +214,8 @@ services:
     build: ./booking-frontend
     container_name: booking-frontend
     restart: always
+    environment:
+      - API_BASE_URL=http://localhost/api
     networks:
       - booking-network
 

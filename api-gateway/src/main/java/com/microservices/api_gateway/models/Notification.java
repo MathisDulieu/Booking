@@ -1,5 +1,6 @@
 package com.microservices.api_gateway.models;
 
+import com.microservices.api_gateway.models.enums.NotificationType;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
