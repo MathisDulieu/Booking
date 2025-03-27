@@ -1,5 +1,6 @@
 package com.microservices.api_gateway.controllers;
 
+import com.microservices.api_gateway.models.User;
 import com.microservices.api_gateway.models.dto.request.payment.PayWithCardRequest;
 import com.microservices.api_gateway.models.dto.request.payment.PayWithPaypalRequest;
 import com.microservices.api_gateway.services.PaymentService;
@@ -12,6 +13,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -129,6 +131,7 @@ public class PaymentController {
             )
     })
     public ResponseEntity<Map<String, String>> payWithCard(
+            @AuthenticationPrincipal User authenticatedUser,
             @RequestBody
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Payment details",
@@ -156,7 +159,7 @@ public class PaymentController {
             )
             PayWithCardRequest request
     ) {
-        return paymentService.processCardPayment(request);
+        return paymentService.processCardPayment(request, authenticatedUser.getId());
     }
 
     @PostMapping("/paypal")
@@ -261,6 +264,7 @@ public class PaymentController {
             )
     })
     public ResponseEntity<Map<String, String>> payWithPayPal(
+            @AuthenticationPrincipal User authenticatedUser,
             @RequestBody
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "PayPal payment details",
@@ -286,7 +290,7 @@ public class PaymentController {
             )
             PayWithPaypalRequest request
     ) {
-        return paymentService.processPayPalPayment(request);
+        return paymentService.processPayPalPayment(request, authenticatedUser.getId());
     }
 
 }

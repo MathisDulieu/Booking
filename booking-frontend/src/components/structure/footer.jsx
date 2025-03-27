@@ -16,7 +16,7 @@ const Footer = () => {
                             ></div>
                         </Link>
                         <p className="max-w-xs mt-4 text-sm text-blue-100">
-                            Découvrez et réservez les meilleurs événements et concerts. EventHub vous connecte avec vos artistes préférés.
+                            Discover and book the best events and concerts. EventHub connects you with your favorite artists.
                         </p>
                         <div className="flex mt-8 space-x-6 text-blue-200">
                             <a className="hover:text-white transition-colors duration-300" href="https://facebook.com" target="_blank" rel="noreferrer">
@@ -42,13 +42,13 @@ const Footer = () => {
                     <div className="grid grid-cols-1 gap-8 lg:col-span-2 sm:grid-cols-2 lg:grid-cols-4">
                         <div>
                             <p className="font-medium text-white">
-                                Notre Société
+                                Our Company
                             </p>
                             <nav className="flex flex-col mt-4 space-y-2 text-sm text-blue-100">
-                                <Link className="hover:text-white transition-colors duration-300" to="/a-propos">À propos</Link>
-                                <Link className="hover:text-white transition-colors duration-300" to="/equipe">Notre équipe</Link>
-                                <Link className="hover:text-white transition-colors duration-300" to="/histoire">Histoire</Link>
-                                <Link className="hover:text-white transition-colors duration-300" to="/carrieres">Carrières</Link>
+                                <Link className="hover:text-white transition-colors duration-300" to="/about">About</Link>
+                                <Link className="hover:text-white transition-colors duration-300" to="/team">Our Team</Link>
+                                <Link className="hover:text-white transition-colors duration-300" to="/history">History</Link>
+                                <Link className="hover:text-white transition-colors duration-300" to="/careers">Careers</Link>
                             </nav>
                         </div>
                         <div>
@@ -58,37 +58,37 @@ const Footer = () => {
                             <nav className="flex flex-col mt-4 space-y-2 text-sm text-blue-100">
                                 <Link className="hover:text-white transition-colors duration-300" to="/concerts">Concerts</Link>
                                 <Link className="hover:text-white transition-colors duration-300" to="/festivals">Festivals</Link>
-                                <Link className="hover:text-white transition-colors duration-300" to="/artistes">Artistes</Link>
-                                <Link className="hover:text-white transition-colors duration-300" to="/billetterie">Billetterie</Link>
-                                <Link className="hover:text-white transition-colors duration-300" to="/connexion">Espace Artiste</Link>
+                                <Link className="hover:text-white transition-colors duration-300" to="/artists">Artists</Link>
+                                <Link className="hover:text-white transition-colors duration-300" to="/tickets">Tickets</Link>
+                                <Link className="hover:text-white transition-colors duration-300" to="/login">Artist Portal</Link>
                             </nav>
                         </div>
                         <div>
                             <p className="font-medium text-white">
-                                Aide
+                                Help
                             </p>
                             <nav className="flex flex-col mt-4 space-y-2 text-sm text-blue-100">
                                 <Link className="hover:text-white transition-colors duration-300" to="/contact">Contact</Link>
                                 <Link className="hover:text-white transition-colors duration-300" to="/faq">FAQs</Link>
-                                <Link className="hover:text-white transition-colors duration-300" to="/live-chat">Chat en direct</Link>
+                                <Link className="hover:text-white transition-colors duration-300" to="/live-chat">Live Chat</Link>
                                 <Link className="hover:text-white transition-colors duration-300" to="/support">Support</Link>
                             </nav>
                         </div>
                         <div>
                             <p className="font-medium text-white">
-                                Mentions légales
+                                Legal
                             </p>
                             <nav className="flex flex-col mt-4 space-y-2 text-sm text-blue-100">
-                                <Link className="hover:text-white transition-colors duration-300" to="/confidentialite">Politique de confidentialité</Link>
-                                <Link className="hover:text-white transition-colors duration-300" to="/conditions">Conditions d'utilisation</Link>
-                                <Link className="hover:text-white transition-colors duration-300" to="/remboursements">Politique de remboursement</Link>
-                                <Link className="hover:text-white transition-colors duration-300" to="/accessibilite">Accessibilité</Link>
+                                <Link className="hover:text-white transition-colors duration-300" to="/privacy">Privacy Policy</Link>
+                                <Link className="hover:text-white transition-colors duration-300" to="/terms">Terms of Service</Link>
+                                <Link className="hover:text-white transition-colors duration-300" to="/refunds">Refund Policy</Link>
+                                <Link className="hover:text-white transition-colors duration-300" to="/accessibility">Accessibility</Link>
                             </nav>
                         </div>
                     </div>
                 </div>
                 <p className="mt-8 text-xs text-blue-100">
-                    © {new Date().getFullYear()} EventHub. Tous droits réservés.
+                    © {new Date().getFullYear()} EventHub. All rights reserved.
                 </p>
             </div>
         </div>

@@ -23,37 +23,34 @@ export async function GetEventByIdRequest(eventId) {
     }
 }
 
-export async function GetAllEventsRequests(eventFilterData, actualPage, eventPerPage) {
-    
+export async function GetAllEventsRequests(eventFilterData = {}, actualPage = 0, eventPerPage = 10) {
     try {
         const url = `${API_BASE_URL}/events?page=${actualPage}&pageSize=${eventPerPage}`;
 
-        if(eventFilterData.page && eventFilterData.pageSize){
-            url.search = new URLSearchParams({
-                page: eventFilterData.page,
-                pageSize: eventFilterData.pageSize
+        const requestBody = {
+            ...eventFilterData
+        };
 
-            }).toString();
+        if (!requestBody.filter) {
+            requestBody.filter = "EVENT";
         }
+
         const response = await fetch(url, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify(eventFilterData)
+            body: JSON.stringify(requestBody)
         });
+
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(
-                errorData
-                    ? errorData.message || errorData
-                    : "Something went wrong!"
-            );
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        return response.json();
+        return await response.json();
     } catch (error) {
-        console.error(error);
+        console.error("Error fetching events:", error);
+        throw error;
     }
 }
 

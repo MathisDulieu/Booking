@@ -2,27 +2,42 @@ import Cookies from "js-cookie";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-export async function CreateTicketsRequest(ticketData) {
+export async function CreateTicketsRequest(paymentData) {
     const authToken = Cookies.get('authToken');
 
     if (!authToken) {
-        throw new Error('No authentication token found');
+        return { error: 'No authentication token found' };
     }
 
-    const response = await fetch(`${API_BASE_URL}/private/tickets`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${authToken}`
-        },
-        body: JSON.stringify(ticketData)
-    });
+    try {
+        const tickets = paymentData.ticketsIds.map(ticket => ({
+            eventId: ticket.eventId,
+            ticketCategory: ticket.type,
+            price: ticket.price
+        }));
 
-    if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const formattedData = {
+            tickets: tickets
+        };
+
+        const response = await fetch(`${API_BASE_URL}/private/tickets`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${authToken}`
+            },
+            body: JSON.stringify(formattedData)
+        });
+
+        if (!response.ok) {
+            return { error: `HTTP error! status: ${response.status}` };
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error("Ticket creation error:", error);
+        return { error: error.message };
     }
-
-    return await response.json();
 }
 
 export async function CancelTicketRequest(ticketId) {
@@ -54,103 +69,42 @@ export async function ValidateTicketRequest(ticketId) {
     if (!authToken) {
         throw new Error('No authentication token found');
     }
-}
 
-export async function CancelTicketRequest(ticketId) {
-    const authToken = localStorage.getItem('authToken');
+    const response = await fetch(`${API_BASE_URL}/admin/ticket/${ticketId}/validate`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${authToken}`
+        },
+        body: JSON.stringify(ticketId)
+    });
 
-    if (!authToken) {
-        throw new Error('No authentication token found');
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    try {
-        const response = await fetch(`${API_BASE_URL}/private/ticket/${ticketId}/cancel`, {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${authToken}`
-            },
-            body: JSON.stringify(ticketId)
-        });
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(
-                errorData
-                    ? errorData.message || errorData
-                    : "Something went wrong!"
-            );
-        }
-
-        const responseData = await response.json();
-
-        return responseData;
-    } catch (error) {
-        console.error(error);
-    }
-}
-
-export async function ValidateTicketRequest(ticketId) {
-    const authToken = localStorage.getItem('authToken');
-
-    if (!authToken) {
-        throw new Error('No authentication token found');
-    }
-
-    try {
-        const response = await fetch(`${API_BASE_URL}/admin/ticket/${ticketId}/validate`, {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${authToken}`
-            },
-            body: JSON.stringify(ticketId)
-        });
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(
-                errorData
-                    ? errorData.message || errorData
-                    : "Something went wrong!"
-            );
-        }
-
-        const responseData = await response.json();
-
-        return responseData;
-    } catch (error) {
-        console.error(error);
-    }
+    return await response.json();
 }
 
 
 export async function GetCurrentUserTicketsRequest() {
-    const authToken = localStorage.getItem('authToken');
+    const authToken = Cookies.get('authToken');
 
     if (!authToken) {
         throw new Error('No authentication token found');
     }
 
-    try {
-        const response = await fetch(`${API_BASE_URL}/private/tickets`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${authToken}`
-            }
-        });
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(
-                errorData
-                    ? errorData.message || errorData
-                    : "Something went wrong!"
-            );
+    const response = await fetch(`${API_BASE_URL}/private/tickets`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${authToken}`
         }
+    });
 
-        const responseData = await response.json();
-
-        return responseData;
-    } catch (error) {
-        console.error(error);
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
     }
+
+    return await response.json();
 }

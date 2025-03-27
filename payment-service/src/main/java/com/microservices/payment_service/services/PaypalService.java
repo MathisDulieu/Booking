@@ -72,17 +72,6 @@ public class PaypalService {
             return "Event with ID " + request.getEventId() + " does not exist";
         }
 
-        List<String> ticketsIds = request.getTicketsIds();
-        if (ticketsIds != null && !ticketsIds.isEmpty()) {
-            for (String ticketId : ticketsIds) {
-                if (ticketDao.doesNotExistsById(ticketId)) {
-                    return "Ticket with ID " + ticketId + " does not exist";
-                }
-            }
-        } else {
-            return "No tickets provided for payment";
-        }
-
         return null;
     }
 

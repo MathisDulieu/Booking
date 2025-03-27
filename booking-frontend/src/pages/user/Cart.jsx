@@ -7,6 +7,8 @@ import {
     CreditCard,
     ChevronsRight,
     CheckCircle2,
+    AlertCircle,
+    Loader2
 } from "lucide-react";
 import { FaPaypal } from "react-icons/fa";
 import { CreateTicketsRequest } from "../../hooks/TicketHooks";
@@ -14,6 +16,7 @@ import {
     PayWithCardRequest,
     PayWithPaypalRequest,
 } from "../../hooks/PaymentHooks";
+import Cookies from 'js-cookie';
 
 function Cart() {
     const { items, totalPrice, removeFromCart, clearCart } =
@@ -21,18 +24,37 @@ function Cart() {
     const [isProcessingPayment, setIsProcessingPayment] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState("");
     const [paymentSuccess, setPaymentSuccess] = useState(false);
+    const [error, setError] = useState("");
+    const [status, setStatus] = useState("idle");
     const navigate = useNavigate();
+
+    const serviceFee = totalPrice * 0.05;
+    const totalAmount = totalPrice + serviceFee;
 
     const eventIds = [...new Set(items.map(item => item.eventId))];
     const ticketsIds = items.map(item => ({
         eventId: item.eventId,
         type: item.type,
-        quantity: item.quantity
+        quantity: item.quantity,
+        price: item.price
     }));
     const paymentData = {
         eventIds,
         ticketsIds,
-        amount: totalPrice,
+        amount: totalAmount,
+    };
+
+    const showNotification = (type, message) => {
+        setError(message);
+        setStatus(type);
+
+        if (type === 'success') {
+            setTimeout(() => {
+                if (status === 'success') {
+                    setStatus('idle');
+                }
+            }, 5000);
+        }
     };
 
     const handleRemoveItem = (eventId, type) => {
@@ -46,21 +68,32 @@ function Cart() {
             month: "long",
             day: "numeric",
         };
-        return new Date(dateString).toLocaleDateString("fr-FR", options);
+        return new Date(dateString).toLocaleDateString("en-US", options);
     };
 
     const handlePaymentMethodSelect = (method) => {
         setPaymentMethod(method);
     };
 
+
     const handleProceedToPayment = async () => {
-        if (!paymentMethod) {
-            alert("Veuillez sélectionner une méthode de paiement");
-            return;
-        }
+        setIsProcessingPayment(true);
+        setError("");
+        setStatus("idle");
 
         try {
-            setIsProcessingPayment(true);
+            const authToken = Cookies.get('authToken');
+            if (!authToken) {
+                showNotification('error', "Authentication required. Please log in again.");
+                setIsProcessingPayment(false);
+                return;
+            }
+
+            if (!paymentMethod) {
+                showNotification('error', "Please select a payment method.");
+                setIsProcessingPayment(false);
+                return;
+            }
 
             let paymentResponse;
             if (paymentMethod === "card") {
@@ -70,29 +103,44 @@ function Cart() {
             }
 
             if (!paymentResponse || paymentResponse.error) {
-                throw new Error("Le paiement a échoué.");
+                console.error("Payment failed:", paymentResponse?.error);
+
+                let errorMessage = paymentResponse?.error || "Payment failed.";
+
+                if (errorMessage.includes('401')) {
+                    errorMessage = "Authentication required. Please log in again.";
+                } else if (errorMessage.includes('400')) {
+                    errorMessage = "Invalid payment data.";
+                } else if (errorMessage.includes('500')) {
+                    errorMessage = "The payment service is temporarily unavailable.";
+                }
+
+                showNotification('error', errorMessage);
+                setIsProcessingPayment(false);
+                return;
             }
 
             const ticketResponse = await CreateTicketsRequest(paymentData);
+
             if (!ticketResponse || ticketResponse.error) {
-                throw new Error("Échec de la réservation des billets.");
+                console.error("Ticket creation failed:", ticketResponse?.error);
+                showNotification('error', ticketResponse?.error || "Failed to book tickets.");
+                setIsProcessingPayment(false);
+                return;
             }
 
-            // Simuler le traitement du paiement
-            setTimeout(() => {
-                setIsProcessingPayment(false);
-                setPaymentSuccess(true);
+            setPaymentSuccess(true);
+            showNotification('success', 'Payment completed successfully!');
 
-                // Simuler la redirection après un paiement réussi
-                setTimeout(() => {
-                    clearCart();
-                    navigate("/mes-tickets");
-                }, 3000);
-            }, 2500);
+            setTimeout(() => {
+                clearCart();
+                navigate("/my-tickets");
+            }, 3000);
+
+            setIsProcessingPayment(false);
         } catch (error) {
-            console.error(error);
-            alert(error.message);
-        } finally {
+            console.error("Unexpected error:", error);
+            showNotification('error', "An unexpected error occurred. Please try again later.");
             setIsProcessingPayment(false);
         }
     };
@@ -109,15 +157,15 @@ function Cart() {
                             />
                         </div>
                         <h2 className="text-3xl font-bold text-gray-800 mb-4">
-                            Paiement réussi!
+                            Payment Successful!
                         </h2>
                         <p className="text-gray-600 mb-8">
-                            Votre commande a été traitée avec succès. Vous allez
-                            être redirigé vers vos billets.
+                            Your order has been processed successfully. You will be
+                            redirected to your tickets.
                         </p>
                         <div className="inline-block mt-4">
                             <div className="animate-pulse bg-blue-600 text-white rounded-lg px-6 py-3 font-medium">
-                                Redirection en cours...
+                                Redirecting...
                             </div>
                         </div>
                     </div>
@@ -130,13 +178,13 @@ function Cart() {
         return (
             <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">
                 <div className="mb-6">
-                    <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600"></div>
+                    <Loader2 className="animate-spin h-16 w-16 text-blue-600" />
                 </div>
                 <h2 className="text-2xl font-semibold text-gray-800 mb-2">
-                    Traitement de votre paiement
+                    Processing your payment
                 </h2>
                 <p className="text-gray-600">
-                    Veuillez patienter, ne fermez pas cette fenêtre...
+                    Please wait, do not close this window...
                 </p>
             </div>
         );
@@ -164,18 +212,17 @@ function Cart() {
                             </svg>
                         </div>
                         <h2 className="text-2xl font-bold text-gray-800 mb-4">
-                            Votre panier est vide
+                            Your cart is empty
                         </h2>
                         <p className="text-gray-600 mb-8">
-                            Parcourez nos événements pour trouver des billets
-                            qui vous intéressent.
+                            Browse our events to find tickets that interest you.
                         </p>
                         <Link
                             to="/"
                             className="inline-flex items-center bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition duration-300"
                         >
                             <ArrowLeft size={20} className="mr-2" />
-                            Découvrir les événements
+                            Discover events
                         </Link>
                     </div>
                 </div>
@@ -187,15 +234,29 @@ function Cart() {
         <div className="min-h-screen bg-gray-50 py-12">
             <div className="container mx-auto px-4 max-w-6xl">
                 <h1 className="text-3xl font-bold text-gray-800 mb-8">
-                    Mon Panier
+                    My Cart
                 </h1>
+
+                {status === 'success' && (
+                    <div className="flex items-center p-4 text-sm text-green-600 bg-green-50 rounded-lg mb-6">
+                        <CheckCircle2 className="h-5 w-5 mr-2" />
+                        <span>{error}</span>
+                    </div>
+                )}
+
+                {status === 'error' && (
+                    <div className="flex items-center p-4 text-sm text-red-600 bg-red-50 rounded-lg mb-6">
+                        <AlertCircle className="h-5 w-5 mr-2" />
+                        <span>{error}</span>
+                    </div>
+                )}
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2">
                         <div className="bg-white rounded-xl shadow-md overflow-hidden">
                             <div className="p-6 border-b border-gray-200">
                                 <h2 className="text-xl font-semibold">
-                                    Billets sélectionnés
+                                    Selected tickets
                                 </h2>
                             </div>
 
@@ -215,7 +276,7 @@ function Cart() {
                                                         {item.type}
                                                     </span>
                                                     <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                                        Quantité:{" "}
+                                                        Quantity:{" "}
                                                         {item.quantity}
                                                     </span>
                                                 </div>
@@ -252,7 +313,7 @@ function Cart() {
                                 className="inline-flex items-center text-blue-600 hover:text-blue-800"
                             >
                                 <ArrowLeft size={16} className="mr-2" />
-                                Continuer mes achats
+                                Continue shopping
                             </Link>
                         </div>
                     </div>
@@ -261,14 +322,14 @@ function Cart() {
                         <div className="bg-white rounded-xl shadow-md overflow-hidden sticky top-6">
                             <div className="p-6 border-b border-gray-200">
                                 <h2 className="text-xl font-semibold">
-                                    Résumé de la commande
+                                    Order summary
                                 </h2>
                             </div>
 
                             <div className="p-6">
                                 <div className="flex justify-between mb-4">
                                     <span className="text-gray-600">
-                                        Sous-total
+                                        Subtotal
                                     </span>
                                     <span className="font-medium">
                                         {totalPrice.toFixed(2)} €
@@ -277,9 +338,9 @@ function Cart() {
 
                                 <div className="flex justify-between mb-4">
                                     <span className="text-gray-600">
-                                        Frais de service
+                                        Service fee (5%)
                                     </span>
-                                    <span className="font-medium">0.00 €</span>
+                                    <span className="font-medium">{serviceFee.toFixed(2)} €</span>
                                 </div>
 
                                 <div className="border-t border-gray-200 my-4 pt-4">
@@ -288,14 +349,14 @@ function Cart() {
                                             Total
                                         </span>
                                         <span className="font-bold text-lg">
-                                            {totalPrice.toFixed(2)} €
+                                            {totalAmount.toFixed(2)} €
                                         </span>
                                     </div>
                                 </div>
 
                                 <div className="mt-6">
                                     <h3 className="font-medium mb-4">
-                                        Méthode de paiement
+                                        Payment method
                                     </h3>
                                     <div className="space-y-3">
                                         <div
@@ -314,15 +375,15 @@ function Cart() {
                                                 <div className="h-6 w-6 rounded-full border-2 border-gray-300 flex items-center justify-center mr-3">
                                                     {paymentMethod ===
                                                         "card" && (
-                                                        <div className="h-3 w-3 rounded-full bg-blue-500"></div>
-                                                    )}
+                                                            <div className="h-3 w-3 rounded-full bg-blue-500"></div>
+                                                        )}
                                                 </div>
                                                 <div className="flex items-center">
                                                     <CreditCard
                                                         size={20}
                                                         className="mr-2 text-gray-600"
                                                     />
-                                                    <span>Carte bancaire</span>
+                                                    <span>Credit card</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -343,8 +404,8 @@ function Cart() {
                                                 <div className="h-6 w-6 rounded-full border-2 border-gray-300 flex items-center justify-center mr-3">
                                                     {paymentMethod ===
                                                         "paypal" && (
-                                                        <div className="h-3 w-3 rounded-full bg-blue-500"></div>
-                                                    )}
+                                                            <div className="h-3 w-3 rounded-full bg-blue-500"></div>
+                                                        )}
                                                 </div>
                                                 <div className="flex items-center">
                                                     <FaPaypal
@@ -363,13 +424,13 @@ function Cart() {
                                     disabled={!paymentMethod}
                                     className={`mt-6 w-full py-3 rounded-lg flex items-center justify-center font-medium 
                                         ${
-                                            paymentMethod
-                                                ? "bg-blue-600 text-white hover:bg-blue-700"
-                                                : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                                        } 
+                                        paymentMethod
+                                            ? "bg-blue-600 text-white hover:bg-blue-700"
+                                            : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                    } 
                                         transition-colors`}
                                 >
-                                    Procéder au paiement
+                                    Proceed to payment
                                     <ChevronsRight size={18} className="ml-2" />
                                 </button>
                             </div>

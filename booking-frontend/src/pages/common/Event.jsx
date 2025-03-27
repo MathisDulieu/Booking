@@ -28,7 +28,7 @@ function Event() {
     const { isAuthenticated } = useContext(AuthContext);
     const { addToCart, totalItems } = useContext(CartContext);
 
-    const totalBillets = standardQuantity + premiumQuantity + vipQuantity;
+    const totalTickets = standardQuantity + premiumQuantity + vipQuantity;
 
     useEffect(() => {
         const fetchEvent = async () => {
@@ -64,26 +64,26 @@ function Event() {
         if (!timeArray) return "";
         const [year, month, day, hour, minute] = timeArray;
         const date = new Date(year, month - 1, day, hour, minute);
-        const formattedDate = date.toLocaleDateString("fr-FR", {
+        const formattedDate = date.toLocaleDateString("en-US", {
             weekday: "long",
             year: "numeric",
             month: "long",
             day: "numeric",
         });
-        const formattedTime = date.toLocaleTimeString("fr-FR", {
+        const formattedTime = date.toLocaleTimeString("en-US", {
             hour: "2-digit",
             minute: "2-digit",
         });
         return { date: formattedDate, time: formattedTime };
     };
 
-    const prixCategories = {
+    const ticketPrices = {
         standard: event?.standardTicketsPrice || 45,
         premium: event?.premiumTicketsPrice || 75,
         vip: event?.vipticketsPrice || 120,
     };
 
-    const handleReserver = () => {
+    const handleReserve = () => {
         setStandardQuantity(0);
         setPremiumQuantity(0);
         setVipQuantity(0);
@@ -94,20 +94,20 @@ function Event() {
         setShowModal(false);
     };
 
-    const calculerPrixTotal = () => {
+    const calculateTotalPrice = () => {
         return (
-            standardQuantity * prixCategories.standard +
-            premiumQuantity * prixCategories.premium +
-            vipQuantity * prixCategories.vip
+            standardQuantity * ticketPrices.standard +
+            premiumQuantity * ticketPrices.premium +
+            vipQuantity * ticketPrices.vip
         );
     };
 
-    const handleRetour = () => {
+    const handleBack = () => {
         navigate("/");
     };
 
-    const handleProcederPaiement = () => {
-        if (totalBillets > 0 && event) {
+    const handleProceedToPayment = () => {
+        if (totalTickets > 0 && event) {
             const cartItems = [];
 
             if (standardQuantity > 0) {
@@ -116,7 +116,7 @@ function Event() {
                     eventName: event.name,
                     date: formatArrayTime(event.startTime).date,
                     type: "Standard",
-                    price: prixCategories.standard,
+                    price: ticketPrices.standard,
                     quantity: standardQuantity,
                 });
             }
@@ -127,7 +127,7 @@ function Event() {
                     eventName: event.name,
                     date: formatArrayTime(event.startTime).date,
                     type: "Premium",
-                    price: prixCategories.premium,
+                    price: ticketPrices.premium,
                     quantity: premiumQuantity,
                 });
             }
@@ -138,7 +138,7 @@ function Event() {
                     eventName: event.name,
                     date: formatArrayTime(event.startTime).date,
                     type: "VIP",
-                    price: prixCategories.vip,
+                    price: ticketPrices.vip,
                     quantity: vipQuantity,
                 });
             }
@@ -151,21 +151,21 @@ function Event() {
 
             setNotification({
                 show: true,
-                message: `${totalBillets} billet${
-                    totalBillets > 1 ? "s" : ""
-                } ajouté${totalBillets > 1 ? "s" : ""} au panier`,
+                message: `${totalTickets} ticket${
+                    totalTickets > 1 ? "s" : ""
+                } added to cart`,
             });
         }
     };
 
     const handleRedirectLogin = () => {
-        navigate("/connexion", {
-            state: { returnUrl: `/evenement/${eventId}` },
+        navigate("/login", {
+            state: { returnUrl: `/event/${eventId}` },
         });
     };
 
     const handleViewCart = () => {
-        navigate("/mon-panier");
+        navigate("/cart");
     };
 
     if (loading) {
@@ -180,18 +180,17 @@ function Event() {
         return (
             <div className="container mx-auto px-4 py-16 text-center">
                 <h2 className="text-3xl font-bold text-gray-800 mb-4">
-                    Événement non trouvé
+                    Event not found
                 </h2>
                 <p className="text-gray-600 mb-8">
-                    L'événement que vous recherchez n'existe pas ou a été
-                    supprimé.
+                    The event you're looking for does not exist or has been removed.
                 </p>
                 <button
-                    onClick={handleRetour}
+                    onClick={handleBack}
                     className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center mx-auto"
                 >
                     <ArrowLeft size={20} className="mr-2" />
-                    Retour aux événements
+                    Back to events
                 </button>
             </div>
         );
@@ -212,7 +211,7 @@ function Event() {
                                 className="text-sm text-green-600 underline mt-1 flex items-center"
                             >
                                 <ShoppingCart size={14} className="mr-1" />
-                                Voir mon panier
+                                View my cart
                             </button>
                         </div>
                     </div>
@@ -228,7 +227,7 @@ function Event() {
                     />
                     <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent py-6 px-6">
                         <div className="inline-block bg-blue-600 text-white px-3 py-1 rounded-md text-sm font-medium mb-2">
-                            À partir de {event.minimumPrice} €
+                            Starting from {event.minimumPrice} €
                         </div>
                         <h1 className="text-3xl md:text-4xl font-bold text-white">
                             {event.name}
@@ -246,14 +245,14 @@ function Event() {
                             <div>
                                 <p className="font-medium">Date</p>
                                 <p className="text-gray-600">
-                                    Du
+                                    From
                                     {" " +
                                         formatArrayTime(event.startTime).date}
                                     {event.endTime &&
                                         event.startTime !== event.endTime && (
                                             <>
                                                 {" "}
-                                                au{" "}
+                                                to{" "}
                                                 {
                                                     formatArrayTime(
                                                         event.endTime
@@ -271,7 +270,7 @@ function Event() {
                                 className="text-blue-500 mt-1 mr-2"
                             />
                             <div>
-                                <p className="font-medium">Horaires</p>
+                                <p className="font-medium">Time</p>
                                 <p className="text-gray-600">
                                     {formatArrayTime(event.startTime).time} -{" "}
                                     {formatArrayTime(event.endTime).time}
@@ -285,7 +284,7 @@ function Event() {
                                 className="text-blue-500 mt-1 mr-2"
                             />
                             <div>
-                                <p className="font-medium">Lieu</p>
+                                <p className="font-medium">Location</p>
                                 <p className="text-gray-600">{event.address}</p>
                             </div>
                         </div>
@@ -293,7 +292,7 @@ function Event() {
 
                     <div className="mb-8">
                         <h2 className="text-2xl font-bold mb-4">
-                            À propos de cet événement
+                            About this event
                         </h2>
                         <p className="text-gray-700 mb-4">
                             {event.description}
@@ -302,15 +301,15 @@ function Event() {
                         {event.artists && event.artists.length > 0 && (
                             <div className="mt-6">
                                 <h3 className="text-xl font-semibold mb-3">
-                                    Artiste(s)
+                                    Artist(s)
                                 </h3>
                                 <div className="flex flex-wrap gap-2">
-                                    {event.artists.map((artiste, index) => (
+                                    {event.artists.map((artist, index) => (
                                         <span
                                             key={index}
                                             className="bg-gray-100 px-3 py-1 rounded-full text-gray-800"
                                         >
-                                            {artiste}
+                                            {artist}
                                         </span>
                                     ))}
                                 </div>
@@ -322,10 +321,10 @@ function Event() {
                         {event.availableTickets !== 0 && (
                             <>
                                 <h2 className="text-2xl font-bold mb-4">
-                                    Réservez vos billets
+                                    Book your tickets
                                 </h2>
                                 <p className="text-gray-700 mb-6">
-                                    Billets à partir de{" "}
+                                    Tickets starting from{" "}
                                     <span className="font-bold text-blue-600">
                                         {event.minimumPrice} €
                                     </span>
@@ -334,20 +333,20 @@ function Event() {
                         )}
                         {event.availableTickets === 0 ? (
                             <h2 classname="w-full py-3 text-2xl font-bold bg-gray-400 text-white rounded-lg text-center justify-center">
-                                Cet événement est complet
+                                This event is sold out
                             </h2>
                         ) : (
                             <button
                                 onClick={
                                     isAuthenticated
-                                        ? handleReserver
+                                        ? handleReserve
                                         : handleRedirectLogin
                                 }
                                 className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-lg"
                             >
                                 {isAuthenticated
-                                    ? "Réserver maintenant"
-                                    : "Se connecter pour réserver"}
+                                    ? "Reserve now"
+                                    : "Login to book tickets"}
                             </button>
                         )}
                     </div>
@@ -360,7 +359,7 @@ function Event() {
                         <div className="p-6 border-b border-gray-200">
                             <div className="flex justify-between items-center">
                                 <h3 className="text-xl font-bold">
-                                    Réserver des billets
+                                    Book tickets
                                 </h3>
                                 <button
                                     onClick={closeModal}
@@ -394,32 +393,30 @@ function Event() {
                                     {event.address}
                                 </p>
                                 <p className="text-gray-600 text-sm mt-1">
-                                    Billets disponibles :{" "}
-                                    {event.availableTickets}
+                                    Available tickets: {event.availableTickets}
                                 </p>
                             </div>
 
                             <div className="mb-6">
                                 <label className="block text-gray-700 mb-2">
-                                    Catégorie de billet
+                                    Ticket category
                                 </label>
                                 <div className="space-y-3">
                                     <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
                                         <div>
                                             <p className="font-medium">
-                                                Billet Standard
+                                                Standard Ticket
                                             </p>
                                             <p className="text-gray-600 text-sm">
-                                                Entrée générale
+                                                General admission
                                             </p>
                                             <p className="text-gray-600 text-sm">
-                                                Disponibles :{" "}
-                                                {event.availableStandardTickets}
+                                                Available: {event.availableStandardTickets}
                                             </p>
                                         </div>
                                         <div className="flex items-center space-x-2">
                                             <p className="font-bold">
-                                                {prixCategories.standard} €
+                                                {ticketPrices.standard} €
                                             </p>
                                             <div className="flex items-center">
                                                 <button
@@ -432,7 +429,7 @@ function Event() {
                                                             Math.max(
                                                                 0,
                                                                 standardQuantity -
-                                                                    1
+                                                                1
                                                             )
                                                         )
                                                     }
@@ -471,7 +468,7 @@ function Event() {
                                                     onClick={() =>
                                                         setStandardQuantity(
                                                             standardQuantity +
-                                                                1,
+                                                            1,
                                                             event.availableStandardTickets
                                                         )
                                                     }
@@ -486,19 +483,18 @@ function Event() {
                                     <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
                                         <div>
                                             <p className="font-medium">
-                                                Billet Premium
+                                                Premium Ticket
                                             </p>
                                             <p className="text-gray-600 text-sm">
-                                                Placement préférentiel
+                                                Preferred seating
                                             </p>
                                             <p className="text-gray-600 text-sm">
-                                                Disponibles :{" "}
-                                                {event.availablePremiumTickets}
+                                                Available: {event.availablePremiumTickets}
                                             </p>
                                         </div>
                                         <div className="flex items-center space-x-2">
                                             <p className="font-bold">
-                                                {prixCategories.premium} €
+                                                {ticketPrices.premium} €
                                             </p>
                                             <div className="flex items-center">
                                                 <button
@@ -511,7 +507,7 @@ function Event() {
                                                             Math.max(
                                                                 0,
                                                                 premiumQuantity -
-                                                                    1
+                                                                1
                                                             )
                                                         )
                                                     }
@@ -549,7 +545,7 @@ function Event() {
                                                         setPremiumQuantity(
                                                             Math.min(
                                                                 premiumQuantity +
-                                                                    1,
+                                                                1,
                                                                 event.availablePremiumTickets
                                                             )
                                                         )
@@ -565,19 +561,18 @@ function Event() {
                                     <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
                                         <div>
                                             <p className="font-medium">
-                                                Billet VIP
+                                                VIP Ticket
                                             </p>
                                             <p className="text-gray-600 text-sm">
-                                                Accès backstage & cocktail
+                                                Backstage access & cocktail
                                             </p>
                                             <p className="text-gray-600 text-sm">
-                                                Disponibles :{" "}
-                                                {event.availableVIPTickets}
+                                                Available: {event.availableVIPTickets}
                                             </p>
                                         </div>
                                         <div className="flex items-center space-x-2">
                                             <p className="font-bold">
-                                                {prixCategories.vip} €
+                                                {ticketPrices.vip} €
                                             </p>
                                             <div className="flex items-center">
                                                 <button
@@ -641,18 +636,18 @@ function Event() {
 
                             <div className="flex justify-between items-center mb-6 font-bold">
                                 <p>Total</p>
-                                <p>{calculerPrixTotal()} €</p>
+                                <p>{calculateTotalPrice()} €</p>
                             </div>
 
                             <button
                                 className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:bg-gray-400 disabled:cursor-not-allowed"
-                                onClick={handleProcederPaiement}
+                                onClick={handleProceedToPayment}
                                 disabled={
-                                    totalBillets === 0 ||
-                                    totalBillets > event.availableTickets
+                                    totalTickets === 0 ||
+                                    totalTickets > event.availableTickets
                                 }
                             >
-                                Ajouter au panier
+                                Add to cart
                             </button>
                         </div>
                     </div>

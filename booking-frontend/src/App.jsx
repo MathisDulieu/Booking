@@ -96,9 +96,7 @@ function PageLayout({ isAuthenticated, isAdmin, isArtist }) {
     const location = useLocation();
     const isAdminPage = location.pathname.startsWith("/admin");
 
-    // Add global style to remove double scrollbar
     React.useEffect(() => {
-        // Remove any additional scrollbar
         document.body.style.overflow = "auto";
         document.documentElement.style.overflow = "auto";
 

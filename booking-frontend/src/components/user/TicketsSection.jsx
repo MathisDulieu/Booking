@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, MapPin, Clock, Download, QrCode, Loader2, CheckCircle } from 'lucide-react';
-import { GetCurrentUserTicketsRequest } from '../../hooks/TicketHooks';
+import { Calendar, MapPin, Download, QrCode, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { GetCurrentUserTicketsRequest, CancelTicketRequest } from '../../hooks/TicketHooks';
 import Cookies from 'js-cookie';
 
 function TicketsSection() {
     const [tickets, setTickets] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [status, setStatus] = useState('idle'); // idle, loading, success, error
+    const [status, setStatus] = useState('idle');
     const [activeTicket, setActiveTicket] = useState(null);
+    const [cancellingTicket, setCancellingTicket] = useState(null);
 
     const showNotification = (type, message) => {
         setError(message);
@@ -41,6 +42,10 @@ function TicketsSection() {
 
             const response = await GetCurrentUserTicketsRequest();
 
+            const today = new Date();
+            today.setDate(today.getDate() + 1);
+            const tomorrow = today.toISOString().split('T')[0];
+
             if (response.warning) {
                 setTickets([]);
             } else if (response.message && response.message.tickets) {
@@ -49,12 +54,12 @@ function TicketsSection() {
                     eventId: ticket.eventId,
                     eventName: ticket.eventName || "Event",
                     location: ticket.location || "Venue",
-                    date: ticket.eventDate || new Date().toISOString().split('T')[0],
+                    date: ticket.eventDate || tomorrow,
                     time: ticket.eventTime || "TBA",
                     type: ticket.ticketType,
                     price: ticket.price,
                     qrCode: `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${ticket.id}`,
-                    status: ticket.status === "ACTIVE" ? "valid" :
+                    status: ticket.status === "VALID" ? "valid" :
                         ticket.status === "USED" ? "used" :
                             ticket.status === "CANCELLED" ? "cancelled" : "expired",
                     purchaseDate: ticket.purchaseDate
@@ -77,28 +82,70 @@ function TicketsSection() {
         }
     };
 
-    // Updated format date function to ensure full date display
+    const handleCancelTicket = async (ticketId) => {
+        if (!confirm('Are you sure you want to cancel this ticket? This action cannot be undone.')) {
+            return;
+        }
+
+        setCancellingTicket(ticketId);
+        setError('');
+        setStatus('idle');
+
+        try {
+            const response = await CancelTicketRequest(ticketId);
+
+            if (response && response.message && response.message.includes("canceled successfully")) {
+                setTickets(tickets.map(ticket =>
+                    ticket.id === ticketId
+                        ? { ...ticket, status: 'cancelled' }
+                        : ticket
+                ));
+
+                showNotification('success', response.message);
+            } else if (response && response.error) {
+                showNotification('error', response.error);
+            } else {
+                showNotification('error', 'Failed to cancel ticket.');
+            }
+        } catch (error) {
+            console.error("Error cancelling ticket:", error);
+            let errorMessage = "Failed to cancel ticket.";
+
+            if (error.message && typeof error.message === 'string') {
+                if (error.message.includes('401')) {
+                    errorMessage = "Authentication required. Please login again.";
+                } else if (error.message.includes('403')) {
+                    errorMessage = "You don't have permission to cancel this ticket.";
+                } else if (error.message.includes('500')) {
+                    errorMessage = "The service is currently unavailable. Please try again later.";
+                }
+            }
+
+            showNotification('error', errorMessage);
+        } finally {
+            setCancellingTicket(null);
+        }
+    };
+
     const formatDate = (dateString) => {
         try {
             const date = new Date(dateString);
-            // Check if date is valid
             if (isNaN(date.getTime())) {
                 return "Invalid date";
             }
 
-            // Using a more specific format to ensure the full date is displayed
             const options = {
                 weekday: 'long',
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric',
-                timeZone: 'UTC' // Use UTC to avoid timezone issues
+                timeZone: 'UTC'
             };
 
             return date.toLocaleDateString('en-US', options);
         } catch (error) {
             console.error("Error formatting date:", error);
-            return dateString; // Return the original string if there's an error
+            return dateString;
         }
     };
 
@@ -108,7 +155,6 @@ function TicketsSection() {
 
     const handleDownloadTicket = (ticket) => {
         console.log('Downloading ticket:', ticket.id);
-        // Here you would implement the logic to generate/download a PDF
         alert(`The ticket for "${ticket.eventName}" will be downloaded.`);
     };
 
@@ -217,6 +263,25 @@ function TicketsSection() {
                                                 <Download size={16} className="mr-2" />
                                                 Download
                                             </button>
+                                            {ticket.status === 'valid' && (
+                                                <button
+                                                    onClick={() => handleCancelTicket(ticket.id)}
+                                                    disabled={cancellingTicket === ticket.id}
+                                                    className="flex items-center px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm justify-center md:justify-start"
+                                                >
+                                                    {cancellingTicket === ticket.id ? (
+                                                        <>
+                                                            <Loader2 size={16} className="animate-spin mr-2" />
+                                                            Cancelling...
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <AlertCircle size={16} className="mr-2" />
+                                                            Cancel
+                                                        </>
+                                                    )}
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
 

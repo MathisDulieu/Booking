@@ -38,11 +38,13 @@ public class PaymentService {
         }
     }
 
-    public ResponseEntity<Map<String, String>> processCardPayment(PayWithCardRequest request) {
+    public ResponseEntity<Map<String, String>> processCardPayment(PayWithCardRequest request, String authenticatedUserId) {
+        request.setUserId(authenticatedUserId);
         return sendPaymentRequest("payment.payWithCard", request);
     }
 
-    public ResponseEntity<Map<String, String>> processPayPalPayment(PayWithPaypalRequest request) {
+    public ResponseEntity<Map<String, String>> processPayPalPayment(PayWithPaypalRequest request, String authenticatedUserId) {
+        request.setUserId(authenticatedUserId);
         return sendPaymentRequest("payment.payWithPaypal", request);
     }
 }

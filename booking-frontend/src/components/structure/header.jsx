@@ -1,10 +1,9 @@
 import React, { useState, useContext } from 'react';
 import logoImage from '../../assets/images/logo/EventHubLogo.png';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../services/AuthContext';
 import { CartContext } from '../../services/CartContext';
 import { LayoutDashboard, Menu, Search, X, ShoppingCart } from 'lucide-react';
-import { GetAllEventsRequests } from '../../hooks/EventHooks';
 
 const Header = () => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -13,32 +12,24 @@ const Header = () => {
     const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
     const { isAuthenticated, isAdmin, isArtist } = useContext(AuthContext);
     const { totalPrice, totalItems } = useContext(CartContext);
+    const navigate = useNavigate();
 
     const categories = [
-        'EVENT', 
-        'ARTIST', 
-        'CONCERT', 
-        'FESTIVAL', 
-        'PLACE'
+        'EVENT',
+        'ARTIST',
+        'CONCERT',
+        'FESTIVAL'
     ];
 
-    const handleSearch = async () => {
+    const handleSearch = () => {
         if(!searchTerm.trim()) return;
 
-        try{
-            const searchData = {
-                filter: searchCategory,
-                filterSearch: searchTerm.trim(),
-            }
-            //TODO : Terminer la logique en coopération entre le Header et la page Home
+        const searchParams = new URLSearchParams();
+        searchParams.append('filter', searchCategory);
+        searchParams.append('search', searchTerm.trim());
 
-            const response = await GetAllEventsRequests(searchData, 0, 10);
-            console.log("Résultat de la recherche:", response);
-        }catch(error){
-            console.error("Erreur lors de la recherche:", error);
-        }
+        navigate(`/?${searchParams.toString()}`);
 
-        console.log("Recherche effectuée pour:", searchTerm);
         setMobileSearchOpen(false);
     };
 
@@ -79,32 +70,31 @@ const Header = () => {
                 </div>
 
                 <div className="w-full max-w-md lg:max-w-xl xl:max-w-2xl bg-white rounded-md hidden md:flex items-center mx-4 border border-blue-500 focus-within:ring-2 focus-within:ring-blue-300">
-                    <select 
-                        className="bg-transparent uppercase font-bold text-xs lg:text-sm p-2 lg:p-4 mr-2 lg:mr-4 cursor-pointer hover:bg-gray-100 transition duration-300 text-blue-800" 
-                        name="categories" 
+                    <select
+                        className="bg-transparent uppercase font-bold text-xs lg:text-sm p-2 lg:p-4 mr-2 lg:mr-4 cursor-pointer hover:bg-gray-100 transition duration-300 text-blue-800"
+                        name="categories"
                         id="categories"
                         onChange={(e) => setSearchCategory(e.target.value)}
+                        value={searchCategory}
                     >
                         {categories.map((category) => (
                             <option key={category} value={category}>
                                 {category === "EVENT"
-                                    ? "All"
+                                    ? "Events"
                                     : category === "CONCERT"
-                                    ? "Concerts"
-                                    : category === "FESTIVAL"
-                                    ? "Festivals"
-                                    : category === "ARTIST"
-                                    ? "Artists"
-                                    : category === "PLACE"
-                                    ? "Place"
-                                    : category}
+                                        ? "Concerts"
+                                        : category === "FESTIVAL"
+                                            ? "Festivals"
+                                            : category === "ARTIST"
+                                                ? "Artists"
+                                                : category}
                             </option>
                         ))}
                     </select>
                     <input
                         className="border-l border-gray-300 bg-transparent font-semibold text-sm pl-4 py-2 lg:py-3 flex-grow focus:outline-none text-gray-800"
                         type="text"
-                        placeholder="Je recherche un événement..."
+                        placeholder="I'm looking for an event..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         onKeyPress={handleKeyPress}
@@ -161,7 +151,7 @@ const Header = () => {
                             <div className="ml-2 lg:ml-4 hidden xl:flex flex-col font-bold text-white">
                                 {!(isAdmin || isArtist) && (
                                     <>
-                                        <span className="text-xs text-white">Votre Panier</span>
+                                        <span className="text-xs text-white">Your Cart</span>
                                         <span className="text-sm">{totalPrice.toFixed(2)} €</span>
                                     </>
                                 )}
@@ -169,7 +159,7 @@ const Header = () => {
                         </>
                     ) : (
                         <Link to="/connexion" className="bg-white text-blue-700 font-bold text-xs md:text-sm py-2 px-2 md:px-4 whitespace-nowrap rounded-md hover:bg-blue-100 transition duration-300">
-                            Se connecter
+                            Sign in
                         </Link>
                     )}
                 </div>
@@ -178,16 +168,31 @@ const Header = () => {
             {mobileSearchOpen && (
                 <div className="md:hidden p-4 bg-blue-700">
                     <div className="flex items-center">
-                        <select className="bg-white uppercase font-bold text-xs p-2 mr-2 rounded-l-md cursor-pointer text-blue-800" name="mobileCategories" id="mobileCategories">
-                            <option>Toutes</option>
-                            <option>Concert</option>
-                            <option>Festival</option>
-                            <option>Artiste</option>
+                        <select
+                            className="bg-white uppercase font-bold text-xs p-2 mr-2 rounded-l-md cursor-pointer text-blue-800"
+                            name="mobileCategories"
+                            id="mobileCategories"
+                            onChange={(e) => setSearchCategory(e.target.value)}
+                            value={searchCategory}
+                        >
+                            {categories.map((category) => (
+                                <option key={category} value={category}>
+                                    {category === "EVENT"
+                                        ? "Events"
+                                        : category === "CONCERT"
+                                            ? "Concerts"
+                                            : category === "FESTIVAL"
+                                                ? "Festivals"
+                                                : category === "ARTIST"
+                                                    ? "Artists"
+                                                    : category}
+                                </option>
+                            ))}
                         </select>
                         <input
                             className="bg-white font-semibold text-sm pl-4 py-2 flex-grow focus:outline-none text-gray-800"
                             type="text"
-                            placeholder="Rechercher..."
+                            placeholder="Search..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             onKeyPress={handleKeyPress}
@@ -211,7 +216,7 @@ const Header = () => {
                                     <svg className="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
                                     </svg>
-                                    Accueil
+                                    Home
                                 </Link>
                             </li>
                             {isAuthenticated ? (
@@ -221,14 +226,14 @@ const Header = () => {
                                             <svg className="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                                             </svg>
-                                            Mon Compte
+                                            My Account
                                         </Link>
                                     </li>
                                     {(isAdmin || isArtist) && (
                                         <li>
                                             <Link to={getDashboardUrl()} className="flex items-center text-white font-medium py-2 px-3 rounded-md hover:bg-blue-800 transition duration-300" onClick={() => setMobileMenuOpen(false)}>
                                                 <LayoutDashboard className="h-5 w-5 mr-2" />
-                                                {isAdmin ? "Admin Dashboard" : "Artiste Dashboard"}
+                                                {isAdmin ? "Admin Dashboard" : "Artist Dashboard"}
                                             </Link>
                                         </li>
                                     )}
@@ -236,7 +241,7 @@ const Header = () => {
                                         <li>
                                             <Link to="/mon-panier" className="flex items-center text-white font-medium py-2 px-3 rounded-md hover:bg-blue-800 transition duration-300" onClick={() => setMobileMenuOpen(false)}>
                                                 <ShoppingCart className="h-5 w-5 mr-2" />
-                                                Panier
+                                                Cart
                                                 <span className="ml-2">({totalPrice.toFixed(2)} €)</span>
                                                 {totalItems > 0 && (
                                                     <span className="ml-2 bg-yellow-400 text-blue-900 text-xs font-bold px-2 py-0.5 rounded">
@@ -257,7 +262,7 @@ const Header = () => {
                                         <svg className="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
                                         </svg>
-                                        Se connecter
+                                        Sign in
                                     </Link>
                                 </li>
                             )}
