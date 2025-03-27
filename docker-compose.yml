@@ -215,7 +215,7 @@ services:
     container_name: booking-frontend
     restart: always
     environment:
-      - API_BASE_URL=http://localhost/api
+      - VITE_API_BASE_URL=http://localhost/api
     networks:
       - booking-network
 

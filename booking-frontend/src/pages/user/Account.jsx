@@ -1,36 +1,41 @@
-import React, {useEffect, useState} from 'react';
-import { Check, X, Eye, EyeOff, Mail, Phone, Pencil, LogOut } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import {Check, X, Eye, EyeOff, Mail, Phone, Pencil, LogOut, AlertCircle, Loader2, CheckCircle} from 'lucide-react';
 import NotificationsSection from '../../components/user/NotificationsSection.jsx';
 import TicketsSection from '../../components/user/TicketsSection.jsx';
+import Cookies from 'js-cookie';
+import {
+    DeleteCurrentUserRequest,
+    GetCurrentUserInfoRequest,
+    UpdateEmailRequest,
+    UpdatePasswordRequest,
+    UpdatePhoneRequest,
+    UpdateUsernameRequest
+} from '../../hooks/UserHooks';
 
 function Account() {
     const [activeTab, setActiveTab] = useState('profile');
-    const userData = {
-        email: "john.doe@company.com",
-        emailValidated: true,
-        phoneNumber: "+33 6 12 34 56 78",
-        phoneValidated: false,
-        username: "johndoe"
-    };
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+    const [status, setStatus] = useState('idle');
 
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showPhoneValidationModal, setShowPhoneValidationModal] = useState(false);
     const [validationCode, setValidationCode] = useState('');
-    const [email, setEmail] = useState(userData.email);
-    const [phoneNumber, setPhoneNumber] = useState(userData.phoneNumber);
-    const [username, setUsername] = useState(userData.username);
-    const [emailValidated, setEmailValidated] = useState(userData.emailValidated);
-    const [phoneValidated, setPhoneValidated] = useState(userData.phoneValidated);
+    const [email, setEmail] = useState('');
+    const [phoneNumber, setPhoneNumber] = useState('');
+    const [username, setUsername] = useState('');
+    const [emailValidated, setEmailValidated] = useState(false);
+    const [phoneValidated, setPhoneValidated] = useState(false);
     const [showEditEmailModal, setShowEditEmailModal] = useState(false);
     const [showEditPhoneModal, setShowEditPhoneModal] = useState(false);
     const [showEditUsernameModal, setShowEditUsernameModal] = useState(false);
     const [codeEnvoye, setCodeEnvoye] = useState(false);
     const [showLogoutModal, setShowLogoutModal] = useState(false);
-    const [newEmail, setNewEmail] = useState(userData.email);
-    const [newPhoneNumber, setNewPhoneNumber] = useState(userData.phoneNumber);
-    const [newUsername, setNewUsername] = useState(userData.username);
+    const [newEmail, setNewEmail] = useState('');
+    const [newPhoneNumber, setNewPhoneNumber] = useState('');
+    const [newUsername, setNewUsername] = useState('');
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [passwordStrength, setPasswordStrength] = useState({
@@ -47,45 +52,67 @@ function Account() {
     const USERNAME_REGEX = /^[^\s]{3,15}$/;
     const PHONE_REGEX = /^(\+33|0)[1-9][0-9]{8}$/;
 
+    const showNotification = (type, message) => {
+        setError(message);
+        setStatus(type);
+    };
+
+    useEffect(() => {
+        fetchUserData();
+    }, []);
+
+    const fetchUserData = async () => {
+        setLoading(true);
+        setError('');
+        try {
+            const response = await GetCurrentUserInfoRequest();
+            const userInfo = response.informations;
+            setEmail(userInfo.email);
+            setUsername(userInfo.username);
+            setPhoneNumber(userInfo.phoneNumber);
+            setEmailValidated(userInfo.validatedEmail);
+            setPhoneValidated(userInfo.validatedPhoneNumber);
+
+            setNewEmail(userInfo.email);
+            setNewUsername(userInfo.username);
+            setNewPhoneNumber(userInfo.phoneNumber);
+        } catch (error) {
+            let errorMessage = "Failed to load user data.";
+
+            if (error.message.includes('401')) {
+                errorMessage = "Authentication required. Please login again.";
+            } else if (error.message.includes('500')) {
+                errorMessage = "The service is currently unavailable. Please try again later.";
+            }
+
+            showNotification('error', errorMessage);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const validateEmail = (value) => {
         return EMAIL_REGEX.test(value);
     };
 
     const validatePhone = (value) => {
-        // Retirer tous les espaces du numéro
         const rawPhone = value.replace(/\s/g, '');
 
-        // Vérifier directement avec le regex
         if (PHONE_REGEX.test(rawPhone)) {
             return true;
         }
 
-        // Si le numéro ne commence ni par +33 ni par 0, essayons de le valider avec +33 ajouté
-        if (/^[1-9][0-9]{8}$/.test(rawPhone)) {
-            return true; // C'est valide car on pourra ajouter le +33 devant
-        }
-
-        return false;
+        return /^[1-9][0-9]{8}$/.test(rawPhone);
     };
 
     const handleLogout = () => {
+        Cookies.remove('authToken');
+        window.location.href = "/connexion";
         setShowLogoutModal(false);
     };
 
-    const envoyerCodeSMS = () => {
-        // Simulation de l'envoi du SMS
-        console.log("Envoi d'un SMS au numéro", phoneNumber);
-
-        // Dans un cas réel, vous feriez un appel API ici
-
-        // Marquer comme envoyé
+    const sendSMSCode = () => {
         setCodeEnvoye(true);
-
-        // Générer un code pour la démo (en production, ce serait fait côté serveur)
-        const codeGenere = Math.floor(100000 + Math.random() * 900000).toString();
-        console.log("Code généré:", codeGenere);
-
-        // Optionnel: Vous pourriez afficher une notification de succès
     };
 
     const validateUsername = (value) => {
@@ -122,22 +149,58 @@ function Account() {
         return 'bg-green-500';
     };
 
-    const handleSavePassword = () => {
+    const handleSavePassword = async () => {
         const result = validatePassword(newPassword);
         if (result.isValid) {
-            console.log("Mot de passe sauvegardé");
-            setCurrentPassword('');
-            setNewPassword('');
-            setPasswordStrength({
-                score: 0,
-                hasLowerCase: false,
-                hasUpperCase: false,
-                hasNumber: false,
-                hasSpecialChar: false,
-                hasMinLength: false
-            });
+            setLoading(true);
+            setError('');
+            try {
+                await UpdatePasswordRequest({
+                    oldPassword: currentPassword,
+                    newPassword: newPassword
+                });
+                showNotification('success', "Password updated successfully");
+                setCurrentPassword('');
+                setNewPassword('');
+                setPasswordStrength({
+                    score: 0,
+                    hasLowerCase: false,
+                    hasUpperCase: false,
+                    hasNumber: false,
+                    hasSpecialChar: false,
+                    hasMinLength: false
+                });
+
+                setTimeout(() => {
+                    if (status === 'success') {
+                        setStatus('idle');
+                    }
+                }, 5000);
+            } catch (error) {
+                let errorMessage = "Failed to update password.";
+
+                if (error.message.includes('400')) {
+                    if (error.message.includes('Old password is incorrect')) {
+                        errorMessage = "The current password is incorrect.";
+                    } else if (error.message.includes('New password must be different')) {
+                        errorMessage = "New password must be different from the current one.";
+                    } else if (error.message.includes('does not meet the required criteria')) {
+                        errorMessage = "The new password does not meet the required criteria.";
+                    } else {
+                        errorMessage = "Invalid password format.";
+                    }
+                } else if (error.message.includes('401')) {
+                    errorMessage = "Authentication required. Please login again.";
+                } else if (error.message.includes('500')) {
+                    errorMessage = "The service is currently unavailable. Please try again later.";
+                }
+
+                showNotification('error', errorMessage);
+            } finally {
+                setLoading(false);
+            }
         } else {
-            console.log("Le mot de passe ne répond pas aux critères de sécurité");
+            showNotification('error', "The password does not meet security requirements.");
         }
     };
 
@@ -145,9 +208,30 @@ function Account() {
         setShowDeleteModal(true);
     };
 
-    const confirmDeleteAccount = () => {
-        console.log("Compte supprimé");
-        setShowDeleteModal(false);
+    const confirmDeleteAccount = async () => {
+        setLoading(true);
+        setError('');
+        try {
+            await DeleteCurrentUserRequest();
+            showNotification('success', "Account deleted successfully");
+            Cookies.remove('authToken');
+            setTimeout(() => {
+                window.location.href = "/connexion";
+            }, 2000);
+        } catch (error) {
+            let errorMessage = "Failed to delete account.";
+
+            if (error.message.includes('401')) {
+                errorMessage = "Authentication required. Please login again.";
+            } else if (error.message.includes('500')) {
+                errorMessage = "Server error. Please try again later.";
+            }
+
+            showNotification('error', errorMessage);
+        } finally {
+            setLoading(false);
+            setShowDeleteModal(false);
+        }
     };
 
     const handleValidatePhone = () => {
@@ -158,7 +242,7 @@ function Account() {
         if (validationCode.length === 6) {
             setPhoneValidated(true);
             setShowPhoneValidationModal(false);
-            console.log("Numéro de téléphone validé avec le code:", validationCode);
+            showNotification('success', "Phone number validated successfully");
         }
     };
 
@@ -174,49 +258,141 @@ function Account() {
         setShowEditUsernameModal(true);
     };
 
-    const saveEmail = () => {
+    const saveEmail = async () => {
         if (validateEmail(newEmail)) {
-            setEmail(newEmail);
-            setEmailValidated(false);
-            setShowEditEmailModal(false);
-            console.log("Email mis à jour:", newEmail);
+            setLoading(true);
+            setError('');
+            try {
+                await UpdateEmailRequest({
+                    email: newEmail
+                });
+                setEmail(newEmail);
+                setEmailValidated(false);
+                setShowEditEmailModal(false);
+                showNotification('success', "Email updated successfully");
+
+                setTimeout(() => {
+                    if (status === 'success') {
+                        setStatus('idle');
+                    }
+                }, 5000);
+            } catch (error) {
+                let errorMessage = "Failed to update email.";
+
+                if (error.message.includes('400')) {
+                    if (error.message.includes('already used')) {
+                        errorMessage = "This email is already in use.";
+                    } else if (error.message.includes('Invalid email format')) {
+                        errorMessage = "Invalid email format.";
+                    } else if (error.message.includes('must be different')) {
+                        errorMessage = "The new email must be different from the current one.";
+                    }
+                } else if (error.message.includes('401')) {
+                    errorMessage = "Authentication required. Please login again.";
+                } else if (error.message.includes('500')) {
+                    errorMessage = "The service is currently unavailable. Please try again later.";
+                }
+
+                showNotification('error', errorMessage);
+            } finally {
+                setLoading(false);
+            }
         } else {
-            console.log("L'email n'est pas valide");
+            showNotification('error', "Invalid email format");
         }
     };
 
-    const savePhoneNumber = () => {
+    const savePhoneNumber = async () => {
         const rawInput = newPhoneNumber.replace(/\s/g, '');
         let formattedPhone = rawInput;
 
-        // Formatage du numéro selon son format d'entrée
         if (rawInput.startsWith('+33')) {
-            // Déjà au format international
             formattedPhone = rawInput;
         } else if (rawInput.startsWith('0')) {
-            // Convertir format national en international
             formattedPhone = '+33' + rawInput.substring(1);
         } else if (/^[1-9][0-9]{8}$/.test(rawInput)) {
-            // Numéro sans indicatif ni 0, ajouter +33
             formattedPhone = '+33' + rawInput;
         }
 
-        // Formater pour l'affichage avec espaces
         const displayPhone = formattedPhone.replace(/^\+33(\d{1})(\d{2})(\d{2})(\d{2})(\d{2})$/, '+33 $1 $2 $3 $4 $5');
 
-        setPhoneNumber(displayPhone);
-        setPhoneValidated(false);
-        setShowEditPhoneModal(false);
-        console.log("Numéro de téléphone mis à jour:", displayPhone);
+        setLoading(true);
+        setError('');
+        try {
+            await UpdatePhoneRequest({
+                phone: formattedPhone
+            });
+            setPhoneNumber(displayPhone);
+            setPhoneValidated(false);
+            setShowEditPhoneModal(false);
+            showNotification('success', "Phone number updated successfully");
+
+            setTimeout(() => {
+                if (status === 'success') {
+                    setStatus('idle');
+                }
+            }, 5000);
+        } catch (error) {
+            let errorMessage = "Failed to update phone number.";
+
+            if (error.message.includes('400')) {
+                if (error.message.includes('already used')) {
+                    errorMessage = "This phone number is already in use.";
+                } else if (error.message.includes('Invalid phone')) {
+                    errorMessage = "Invalid phone number format.";
+                }
+            } else if (error.message.includes('401')) {
+                errorMessage = "Authentication required. Please login again.";
+            } else if (error.message.includes('500')) {
+                errorMessage = "The service is currently unavailable. Please try again later.";
+            }
+
+            showNotification('error', errorMessage);
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const saveUsername = () => {
+    const saveUsername = async () => {
         if (validateUsername(newUsername)) {
-            setUsername(newUsername);
-            setShowEditUsernameModal(false);
-            console.log("Nom d'utilisateur mis à jour:", newUsername);
+            setLoading(true);
+            setError('');
+            try {
+                await UpdateUsernameRequest({
+                    username: newUsername
+                });
+                setUsername(newUsername);
+                setShowEditUsernameModal(false);
+                showNotification('success', "Username updated successfully");
+
+                setTimeout(() => {
+                    if (status === 'success') {
+                        setStatus('idle');
+                    }
+                }, 5000);
+            } catch (error) {
+                let errorMessage = "Failed to update username.";
+
+                if (error.message.includes('400')) {
+                    if (error.message.includes('already taken')) {
+                        errorMessage = "This username is already taken.";
+                    } else if (error.message.includes('Invalid username')) {
+                        errorMessage = "Invalid username format.";
+                    } else if (error.message.includes('cannot be the same')) {
+                        errorMessage = "The new username must be different from the current one.";
+                    }
+                } else if (error.message.includes('401')) {
+                    errorMessage = "Authentication required. Please login again.";
+                } else if (error.message.includes('500')) {
+                    errorMessage = "The service is currently unavailable. Please try again later.";
+                }
+
+                showNotification('error', errorMessage);
+            } finally {
+                setLoading(false);
+            }
         } else {
-            console.log("Le nom d'utilisateur n'est pas valide");
+            showNotification('error', "Username must be between 3 and 15 characters with no spaces");
         }
     };
 
@@ -231,19 +407,33 @@ function Account() {
         return (
             <>
                 <div className="pt-4 flex justify-between items-center">
-                    <h1 className="py-2 text-2xl font-semibold">Paramètres du compte</h1>
+                    <h1 className="py-2 text-2xl font-semibold">Account Settings</h1>
                     <button
                         onClick={() => setShowLogoutModal(true)}
                         className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition flex items-center"
                     >
                         <LogOut size={18} className="mr-1" />
-                        Déconnexion
+                        Logout
                     </button>
                 </div>
                 <hr className="mt-4 mb-8" />
 
+                {status === 'success' && (
+                    <div className="flex items-center p-3 text-sm text-green-600 bg-green-50 rounded-md mb-4">
+                        <CheckCircle className="h-5 w-5 mr-2" />
+                        <span>{error}</span>
+                    </div>
+                )}
+
+                {status === 'error' && (
+                    <div className="bg-red-50 border border-red-300 rounded-lg p-4 text-center w-full mb-4">
+                        <p className="text-lg font-semibold text-red-800 mb-2">Error</p>
+                        <p className="text-red-700">{error}</p>
+                    </div>
+                )}
+
                 <div className="flex items-center justify-between mb-2">
-                    <p className="py-2 text-xl font-semibold">Nom d'utilisateur</p>
+                    <p className="py-2 text-xl font-semibold">Username</p>
                 </div>
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center">
@@ -251,7 +441,7 @@ function Account() {
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-gray-600" viewBox="0 0 20 20" fill="currentColor">
                                 <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
                             </svg>
-                            <p className="text-gray-600">Votre nom d'utilisateur est <strong>{username}</strong></p>
+                            <p className="text-gray-600">Your username is <strong>{username}</strong></p>
                             <button
                                 className="ml-2 p-1 text-gray-500 hover:text-blue-500"
                                 onClick={handleEditUsername}
@@ -264,17 +454,17 @@ function Account() {
                 <hr className="mt-4 mb-8" />
 
                 <div className="flex items-center justify-between mb-2">
-                    <p className="py-2 text-xl font-semibold">Adresse email</p>
+                    <p className="py-2 text-xl font-semibold">Email address</p>
                     <div className={`px-3 py-1 rounded-full ${emailValidated ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'} flex items-center`}>
                         {emailValidated ? (
                             <>
                                 <Check size={16} className="mr-1" />
-                                <span>Validé</span>
+                                <span>Verified</span>
                             </>
                         ) : (
                             <>
                                 <X size={16} className="mr-1" />
-                                <span>Non Validé</span>
+                                <span>Not Verified</span>
                             </>
                         )}
                     </div>
@@ -283,7 +473,7 @@ function Account() {
                     <div className="flex items-center">
                         <div className="flex items-center">
                             <Mail size={16} className="mr-2 text-gray-600" />
-                            <p className="text-gray-600">Votre adresse email est <strong>{email}</strong></p>
+                            <p className="text-gray-600">Your email address is <strong>{email}</strong></p>
                             <button
                                 className="ml-2 p-1 text-gray-500 hover:text-blue-500"
                                 onClick={handleEditEmail}
@@ -296,24 +486,24 @@ function Account() {
                         <button
                             className="mt-2 sm:mt-0 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
                         >
-                            Valider l'email
+                            Verify Email
                         </button>
                     )}
                 </div>
                 <hr className="mt-4 mb-8" />
 
                 <div className="flex items-center justify-between mb-2">
-                    <p className="py-2 text-xl font-semibold">Numéro de téléphone</p>
+                    <p className="py-2 text-xl font-semibold">Phone number</p>
                     <div className={`px-3 py-1 rounded-full ${phoneValidated ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'} flex items-center`}>
                         {phoneValidated ? (
                             <>
                                 <Check size={16} className="mr-1" />
-                                <span>Validé</span>
+                                <span>Verified</span>
                             </>
                         ) : (
                             <>
                                 <X size={16} className="mr-1" />
-                                <span>Non Validé</span>
+                                <span>Not Verified</span>
                             </>
                         )}
                     </div>
@@ -322,7 +512,7 @@ function Account() {
                     <div className="flex items-center">
                         <div className="flex items-center">
                             <Phone size={16} className="mr-2 text-gray-600" />
-                            <p className="text-gray-600">Votre numéro de téléphone est <strong>{phoneNumber}</strong></p>
+                            <p className="text-gray-600">Your phone number is <strong>{phoneNumber}</strong></p>
                             <button
                                 className="ml-2 p-1 text-gray-500 hover:text-blue-500"
                                 onClick={handleEditPhone}
@@ -336,17 +526,17 @@ function Account() {
                             className="mt-2 sm:mt-0 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
                             onClick={handleValidatePhone}
                         >
-                            Valider
+                            Verify
                         </button>
                     )}
                 </div>
                 <hr className="mt-4 mb-8" />
 
-                <p className="py-2 text-xl font-semibold">Mot de passe</p>
+                <p className="py-2 text-xl font-semibold">Password</p>
                 <div className="flex items-center flex-wrap">
                     <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
                         <label className="w-full sm:w-auto">
-                            <span className="text-sm text-gray-500">Mot de passe actuel</span>
+                            <span className="text-sm text-gray-500">Current password</span>
                             <div className="relative flex overflow-hidden rounded-md border-2 transition focus-within:border-blue-500">
                                 <input
                                     type={showCurrentPassword ? "text" : "password"}
@@ -366,7 +556,7 @@ function Account() {
                             </div>
                         </label>
                         <label className="w-full sm:w-auto">
-                            <span className="text-sm text-gray-500">Nouveau mot de passe</span>
+                            <span className="text-sm text-gray-500">New password</span>
                             <div className="relative flex overflow-hidden rounded-md border-2 transition focus-within:border-blue-500">
                                 <input
                                     type={showNewPassword ? "text" : "password"}
@@ -403,23 +593,23 @@ function Account() {
                             <ul className="space-y-1">
                                 <li className={`flex items-center ${passwordStrength.hasMinLength ? 'text-green-500' : 'text-slate-500'}`}>
                                     {passwordStrength.hasMinLength ? <Check size={12} className="mr-1" /> : <X size={12} className="mr-1" />}
-                                    Au moins 8 caractères
+                                    At least 8 characters
                                 </li>
                                 <li className={`flex items-center ${passwordStrength.hasLowerCase ? 'text-green-500' : 'text-slate-500'}`}>
                                     {passwordStrength.hasLowerCase ? <Check size={12} className="mr-1" /> : <X size={12} className="mr-1" />}
-                                    Au moins une lettre minuscule
+                                    At least one lowercase letter
                                 </li>
                                 <li className={`flex items-center ${passwordStrength.hasUpperCase ? 'text-green-500' : 'text-slate-500'}`}>
                                     {passwordStrength.hasUpperCase ? <Check size={12} className="mr-1" /> : <X size={12} className="mr-1" />}
-                                    Au moins une lettre majuscule
+                                    At least one uppercase letter
                                 </li>
                                 <li className={`flex items-center ${passwordStrength.hasNumber ? 'text-green-500' : 'text-slate-500'}`}>
                                     {passwordStrength.hasNumber ? <Check size={12} className="mr-1" /> : <X size={12} className="mr-1" />}
-                                    Au moins un chiffre
+                                    At least one number
                                 </li>
                                 <li className={`flex items-center ${passwordStrength.hasSpecialChar ? 'text-green-500' : 'text-slate-500'}`}>
                                     {passwordStrength.hasSpecialChar ? <Check size={12} className="mr-1" /> : <X size={12} className="mr-1" />}
-                                    Au moins un caractère spécial (!@#$%^&*...)
+                                    At least one special character (!@#$%^&*...)
                                 </li>
                             </ul>
                         </div>
@@ -427,43 +617,67 @@ function Account() {
                 )}
 
                 <button
-                    className="mt-4 rounded-lg bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 transition"
+                    className="mt-4 rounded-lg bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 transition disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center"
                     onClick={handleSavePassword}
-                    disabled={!validatePassword(newPassword) || !currentPassword}
+                    disabled={!validatePassword(newPassword).isValid || !currentPassword || loading}
                 >
-                    Enregistrer le mot de passe
+                    {loading ? (
+                        <>
+                            <Loader2 className="animate-spin h-5 w-5 mr-2" />
+                            Updating...
+                        </>
+                    ) : (
+                        "Save password"
+                    )}
                 </button>
                 <hr className="mt-4 mb-8" />
 
                 <div className="mb-10">
-                    <p className="py-2 text-xl font-semibold">Supprimer le compte</p>
+                    <p className="py-2 text-xl font-semibold">Delete account</p>
                     <p className="inline-flex items-center rounded-full bg-rose-100 px-4 py-1 text-rose-600">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="mr-2 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                        </svg>
-                        Procéder avec prudence
+                        <AlertCircle className="mr-2 h-5 w-5" />
+                        Proceed with caution
                     </p>
-                    <p className="mt-2 mb-4">Assurez-vous d'avoir sauvegardé vos données de compte au cas où vous auriez besoin d'y accéder ultérieurement. Nous supprimerons complètement vos données. Il n'y aura aucun moyen d'accéder à votre compte après cette action.</p>
+                    <p className="mt-2 mb-4">Make sure you've backed up your account data in case you need to access it later. We will completely delete your data. There will be no way to access your account after this action.</p>
                     <button
-                        className="px-4 py-2 bg-rose-600 text-white rounded-md hover:bg-rose-700 transition"
+                        className="px-4 py-2 bg-rose-600 text-white rounded-md hover:bg-rose-700 transition flex items-center"
                         onClick={handleDeleteAccount}
+                        disabled={loading}
                     >
-                        Supprimer définitivement
+                        {loading ? (
+                            <>
+                                <Loader2 className="animate-spin h-5 w-5 mr-2" />
+                                Processing...
+                            </>
+                        ) : (
+                            "Delete permanently"
+                        )}
                     </button>
                 </div>
             </>
         )
     };
 
+    if (loading && status !== 'success' && status !== 'error') {
+        return (
+            <div className="container mx-auto px-4 py-8">
+                <div className="max-w-4xl mx-auto flex flex-col items-center justify-center py-20">
+                    <Loader2 className="animate-spin h-16 w-16 text-blue-500 mb-4" />
+                    <p className="text-xl text-gray-600">Loading account information...</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="container mx-auto px-4 py-8">
             <div className="max-w-4xl mx-auto">
-                <h1 className="border-b py-6 text-3xl font-bold">Informations</h1>
+                <h1 className="border-b py-6 text-3xl font-bold">Account Information</h1>
                 <div className="grid grid-cols-8 pt-3 sm:grid-cols-10">
                     <div className="relative my-4 w-56 sm:hidden">
                         <input className="peer hidden" type="checkbox" name="select-1" id="select-1" />
                         <label htmlFor="select-1" className="flex w-full cursor-pointer select-none rounded-lg border p-2 px-3 text-sm text-gray-700 ring-blue-500 peer-checked:ring">
-                            {activeTab === 'profile' ? 'Profil' : activeTab === 'notifications' ? 'Notifications' : 'Tickets'}
+                            {activeTab === 'profile' ? 'Profile' : activeTab === 'notifications' ? 'Notifications' : 'Tickets'}
                         </label>
                         <svg xmlns="http://www.w3.org/2000/svg" className="pointer-events-none absolute right-0 top-3 ml-auto mr-5 h-4 text-slate-700 transition peer-checked:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
@@ -473,7 +687,7 @@ function Account() {
                                 className="cursor-pointer px-3 py-2 text-sm text-slate-600 hover:bg-blue-500 hover:text-white"
                                 onClick={() => setActiveTab('profile')}
                             >
-                                Profil
+                                Profile
                             </li>
                             <li
                                 className="cursor-pointer px-3 py-2 text-sm text-slate-600 hover:bg-blue-500 hover:text-white"
@@ -490,14 +704,13 @@ function Account() {
                         </ul>
                     </div>
 
-                    {/* Menu desktop */}
                     <div className="col-span-2 hidden sm:block">
                         <ul>
                             <li
                                 className={`mt-5 cursor-pointer border-l-2 ${activeTab === 'profile' ? 'border-l-blue-500 text-blue-500' : 'border-transparent'} px-2 py-2 font-semibold transition hover:border-l-blue-500 hover:text-blue-500`}
                                 onClick={() => setActiveTab('profile')}
                             >
-                                Profil
+                                Profile
                             </li>
                             <li
                                 className={`mt-5 cursor-pointer border-l-2 ${activeTab === 'notifications' ? 'border-l-blue-500 text-blue-500' : 'border-transparent'} px-2 py-2 font-semibold transition hover:border-l-blue-500 hover:text-blue-500`}
@@ -514,7 +727,6 @@ function Account() {
                         </ul>
                     </div>
 
-                    {/* Content */}
                     <div className="col-span-8 overflow-hidden rounded-xl sm:bg-gray-50 sm:px-8 sm:shadow">
                         {activeTab === 'profile' ? (
                             renderProfileSection()
@@ -529,20 +741,28 @@ function Account() {
                 {showDeleteModal && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                         <div className="bg-white rounded-lg p-6 w-full max-w-md">
-                            <h2 className="text-xl font-bold mb-4">Confirmer la suppression</h2>
-                            <p className="mb-6">Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible et toutes vos données seront perdues.</p>
+                            <h2 className="text-xl font-bold mb-4">Confirm Deletion</h2>
+                            <p className="mb-6">Are you sure you want to delete your account? This action is irreversible and all your data will be lost.</p>
                             <div className="flex justify-end space-x-4">
                                 <button
                                     className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition"
                                     onClick={() => setShowDeleteModal(false)}
                                 >
-                                    Annuler
+                                    Cancel
                                 </button>
                                 <button
-                                    className="px-4 py-2 bg-rose-600 text-white rounded-md hover:bg-rose-700 transition"
+                                    className="px-4 py-2 bg-rose-600 text-white rounded-md hover:bg-rose-700 transition flex items-center"
                                     onClick={confirmDeleteAccount}
+                                    disabled={loading}
                                 >
-                                    Supprimer définitivement
+                                    {loading ? (
+                                        <>
+                                            <Loader2 className="animate-spin h-4 w-4 mr-2" />
+                                            Processing...
+                                        </>
+                                    ) : (
+                                        "Delete Permanently"
+                                    )}
                                 </button>
                             </div>
                         </div>
@@ -552,14 +772,13 @@ function Account() {
                 {showPhoneValidationModal && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                         <div className="bg-white rounded-lg p-6 w-full max-w-md">
-                            <h2 className="text-xl font-bold mb-4">Validation du numéro de téléphone</h2>
+                            <h2 className="text-xl font-bold mb-4">Phone Number Verification</h2>
 
-                            {/* Ajout d'un état pour gérer l'envoi du SMS */}
                             <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between bg-blue-50 p-3 rounded-lg">
                                 <p className="text-sm text-blue-700 mb-2 sm:mb-0">
                                     {codeEnvoye ?
-                                        "Un SMS avec un code à 6 chiffres a été envoyé à votre téléphone." :
-                                        "Cliquez sur le bouton pour recevoir un code de validation par SMS."}
+                                        "An SMS with a 6-digit code has been sent to your phone." :
+                                        "Click the button to receive a validation code via SMS."}
                                 </p>
                                 <button
                                     className={`px-3 py-1.5 text-sm rounded-md transition ${
@@ -567,15 +786,15 @@ function Account() {
                                             "bg-gray-300 text-gray-600 cursor-not-allowed" :
                                             "bg-blue-600 text-white hover:bg-blue-700"
                                     }`}
-                                    onClick={envoyerCodeSMS}
+                                    onClick={sendSMSCode}
                                     disabled={codeEnvoye}
                                 >
-                                    {codeEnvoye ? "Code envoyé" : "Envoyer le code"}
+                                    {codeEnvoye ? "Code sent" : "Send code"}
                                 </button>
                             </div>
 
                             <div className="mb-4">
-                                <label htmlFor="validation-code" className="block text-sm font-medium text-gray-700 mb-1">Code de validation</label>
+                                <label htmlFor="validation-code" className="block text-sm font-medium text-gray-700 mb-1">Validation code</label>
                                 <input
                                     type="text"
                                     id="validation-code"
@@ -591,14 +810,14 @@ function Account() {
                                     className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition"
                                     onClick={() => setShowPhoneValidationModal(false)}
                                 >
-                                    Annuler
+                                    Cancel
                                 </button>
                                 <button
                                     className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
                                     onClick={submitPhoneValidation}
                                     disabled={validationCode.length !== 6}
                                 >
-                                    Valider
+                                    Verify
                                 </button>
                             </div>
                         </div>
@@ -608,9 +827,9 @@ function Account() {
                 {showEditEmailModal && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                         <div className="bg-white rounded-lg p-6 w-full max-w-md">
-                            <h2 className="text-xl font-bold mb-4">Modifier l'adresse email</h2>
+                            <h2 className="text-xl font-bold mb-4">Edit Email Address</h2>
                             <div className="mb-4">
-                                <label htmlFor="new-email" className="block text-sm font-medium text-gray-700 mb-1">Nouvelle adresse email</label>
+                                <label htmlFor="new-email" className="block text-sm font-medium text-gray-700 mb-1">New email address</label>
                                 <input
                                     type="email"
                                     id="new-email"
@@ -619,7 +838,7 @@ function Account() {
                                     onChange={(e) => setNewEmail(e.target.value)}
                                 />
                                 {newEmail && !validateEmail(newEmail) && (
-                                    <p className="text-red-500 text-sm mt-1">Veuillez entrer une adresse e-mail valide</p>
+                                    <p className="text-red-500 text-sm mt-1">Please enter a valid email address</p>
                                 )}
                             </div>
                             <div className="flex justify-end space-x-4">
@@ -627,14 +846,21 @@ function Account() {
                                     className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition"
                                     onClick={() => setShowEditEmailModal(false)}
                                 >
-                                    Annuler
+                                    Cancel
                                 </button>
                                 <button
-                                    className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
+                                    className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition flex items-center"
                                     onClick={saveEmail}
-                                    disabled={!validateEmail(newEmail)}
+                                    disabled={!validateEmail(newEmail) || loading}
                                 >
-                                    Enregistrer
+                                    {loading ? (
+                                        <>
+                                            <Loader2 className="animate-spin h-4 w-4 mr-2" />
+                                            Saving...
+                                        </>
+                                    ) : (
+                                        "Save"
+                                    )}
                                 </button>
                             </div>
                         </div>
@@ -644,9 +870,9 @@ function Account() {
                 {showEditPhoneModal && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                         <div className="bg-white rounded-lg p-6 w-full max-w-md">
-                            <h2 className="text-xl font-bold mb-4">Modifier le numéro de téléphone</h2>
+                            <h2 className="text-xl font-bold mb-4">Edit Phone Number</h2>
                             <div className="mb-4">
-                                <label htmlFor="new-phone" className="block text-sm font-medium text-gray-700 mb-1">Nouveau numéro de téléphone</label>
+                                <label htmlFor="new-phone" className="block text-sm font-medium text-gray-700 mb-1">New phone number</label>
                                 <div className="flex">
                                     <div className="flex items-center px-3 py-2 border border-gray-300 rounded-l-md bg-gray-50">
                                         <span className="mr-1">🇫🇷</span>
@@ -665,7 +891,7 @@ function Account() {
                                     />
                                 </div>
                                 {newPhoneNumber && !validatePhone(newPhoneNumber) && (
-                                    <p className="text-red-500 text-sm mt-1">Veuillez entrer un numéro de téléphone français valide</p>
+                                    <p className="text-red-500 text-sm mt-1">Please enter a valid French phone number</p>
                                 )}
                             </div>
                             <div className="flex justify-end space-x-4">
@@ -673,14 +899,21 @@ function Account() {
                                     className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition"
                                     onClick={() => setShowEditPhoneModal(false)}
                                 >
-                                    Annuler
+                                    Cancel
                                 </button>
                                 <button
-                                    className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
+                                    className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition flex items-center"
                                     onClick={savePhoneNumber}
-                                    disabled={!validatePhone(newPhoneNumber)}
+                                    disabled={!validatePhone(newPhoneNumber) || loading}
                                 >
-                                    Enregistrer
+                                    {loading ? (
+                                        <>
+                                            <Loader2 className="animate-spin h-4 w-4 mr-2" />
+                                            Saving...
+                                        </>
+                                    ) : (
+                                        "Save"
+                                    )}
                                 </button>
                             </div>
                         </div>
@@ -690,9 +923,9 @@ function Account() {
                 {showEditUsernameModal && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                         <div className="bg-white rounded-lg p-6 w-full max-w-md">
-                            <h2 className="text-xl font-bold mb-4">Modifier le nom d'utilisateur</h2>
+                            <h2 className="text-xl font-bold mb-4">Edit Username</h2>
                             <div className="mb-4">
-                                <label htmlFor="new-username" className="block text-sm font-medium text-gray-700 mb-1">Nouveau nom d'utilisateur</label>
+                                <label htmlFor="new-username" className="block text-sm font-medium text-gray-700 mb-1">New username</label>
                                 <input
                                     type="text"
                                     id="new-username"
@@ -701,7 +934,7 @@ function Account() {
                                     onChange={(e) => setNewUsername(e.target.value)}
                                 />
                                 {newUsername && !validateUsername(newUsername) && (
-                                    <p className="text-red-500 text-sm mt-1">Le nom d'utilisateur doit contenir entre 3 et 15 caractères sans espaces</p>
+                                    <p className="text-red-500 text-sm mt-1">Username must be between 3 and 15 characters with no spaces</p>
                                 )}
                             </div>
                             <div className="flex justify-end space-x-4">
@@ -709,19 +942,27 @@ function Account() {
                                     className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition"
                                     onClick={() => setShowEditUsernameModal(false)}
                                 >
-                                    Annuler
+                                    Cancel
                                 </button>
                                 <button
-                                    className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
+                                    className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition flex items-center"
                                     onClick={saveUsername}
-                                    disabled={!validateUsername(newUsername)}
+                                    disabled={!validateUsername(newUsername) || loading}
                                 >
-                                    Enregistrer
+                                    {loading ? (
+                                        <>
+                                            <Loader2 className="animate-spin h-4 w-4 mr-2" />
+                                            Saving...
+                                        </>
+                                    ) : (
+                                        "Save"
+                                    )}
                                 </button>
                             </div>
                         </div>
                     </div>
                 )}
+
                 {showLogoutModal && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                         <div className="bg-white rounded-lg p-6 w-full max-w-md">
@@ -732,10 +973,10 @@ function Account() {
                                     </svg>
                                 </div>
                                 <div className="ml-3">
-                                    <h3 className="text-lg font-medium text-gray-900">Attention - Contenu du panier</h3>
+                                    <h3 className="text-lg font-medium text-gray-900">Warning - Cart Contents</h3>
                                     <div className="mt-2">
                                         <p className="text-sm text-gray-500">
-                                            Si vous vous déconnectez maintenant, le contenu de votre panier sera perdu. Êtes-vous sûr de vouloir continuer ?
+                                            If you log out now, the contents of your cart will be lost. Are you sure you want to continue?
                                         </p>
                                     </div>
                                 </div>
@@ -746,13 +987,13 @@ function Account() {
                                     className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition"
                                     onClick={() => setShowLogoutModal(false)}
                                 >
-                                    Annuler
+                                    Cancel
                                 </button>
                                 <button
                                     className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition"
                                     onClick={handleLogout}
                                 >
-                                    Déconnexion
+                                    Logout
                                 </button>
                             </div>
                         </div>

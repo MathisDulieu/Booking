@@ -1,6 +1,5 @@
 package com.microservices.api_gateway.services;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microservices.api_gateway.Producer;
 import com.microservices.api_gateway.models.dto.request.ticket.CancelTicketRequest;
@@ -47,16 +46,56 @@ public class TicketService {
     }
 
     @SuppressWarnings("unchecked")
-    private <T, R> ResponseEntity<Map<String, R>> sendAndProcessTicketRequest(T request) throws JsonProcessingException {
-        ResponseEntity<Map<String, String>> response = sendTicketRequest("ticket.getCurrentUserTickets", request);
-        HttpStatusCode status = response.getStatusCode();
-        Map<String, String> responseBody = response.getBody();
-        String key = responseBody.keySet().iterator().next();
-        String jsonValue = responseBody.get(key);
-        ObjectMapper objectMapper = new ObjectMapper();
-        R userResponse = objectMapper.readValue(jsonValue, (Class<R>) GetCurrentUserTicketsResponse.class);
-        Map<String, R> result = singletonMap(key, userResponse);
-        return ResponseEntity.status(status).body(result);
+    private <T, R> ResponseEntity<Map<String, R>> sendAndProcessTicketRequest(T request) {
+        try {
+            ResponseEntity<Map<String, String>> response = sendTicketRequest("ticket.getCurrentUserTickets", request);
+            HttpStatusCode status = response.getStatusCode();
+            Map<String, String> responseBody = response.getBody();
+
+            if (responseBody.isEmpty()) {
+                return ResponseEntity.status(HttpStatusCode.valueOf(500))
+                        .body(singletonMap("error", createErrorResponse((Class<R>) GetCurrentUserTicketsResponse.class, "Empty response received from service")));
+            }
+
+            String key = responseBody.keySet().iterator().next();
+            String jsonValue = responseBody.get(key);
+
+            if (jsonValue == null || !(jsonValue.trim().startsWith("{") || jsonValue.trim().startsWith("["))) {
+                return ResponseEntity.status(HttpStatusCode.valueOf(500))
+                        .body(singletonMap("error", createErrorResponse((Class<R>) GetCurrentUserTicketsResponse.class, "Service error: " + jsonValue)));
+            }
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+
+            R userResponse = objectMapper.readValue(jsonValue, (Class<R>) GetCurrentUserTicketsResponse.class);
+            Map<String, R> result = singletonMap(key, userResponse);
+            return ResponseEntity.status(status).body(result);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatusCode.valueOf(500))
+                    .body(singletonMap("error", createErrorResponse((Class<R>) GetCurrentUserTicketsResponse.class, "Processing error: " + e.getMessage())));
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private <R> R createErrorResponse(Class<R> responseClass, String errorMessage) {
+        try {
+            if (responseClass.equals(GetCurrentUserTicketsResponse.class)) {
+                return (R) GetCurrentUserTicketsResponse.builder()
+                        .error(errorMessage)
+                        .build();
+            } else {
+                try {
+                    R instance = responseClass.getDeclaredConstructor().newInstance();
+                    responseClass.getMethod("setError", String.class).invoke(instance, errorMessage);
+                    return instance;
+                } catch (Exception e) {
+                    return null;
+                }
+            }
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public ResponseEntity<Map<String, String>> cancelTicket(String ticketId, String userId) {
@@ -64,7 +103,7 @@ public class TicketService {
         return sendTicketRequest("ticket.cancelTicket", request);
     }
 
-    public ResponseEntity<Map<String, GetCurrentUserTicketsResponse>> getCurrentUserTickets(String authenticatedUserId) throws JsonProcessingException {
+    public ResponseEntity<Map<String, GetCurrentUserTicketsResponse>> getCurrentUserTickets(String authenticatedUserId) {
         GetCurrentUserTicketsRequest request = new GetCurrentUserTicketsRequest(authenticatedUserId);
         return sendAndProcessTicketRequest(request);
     }

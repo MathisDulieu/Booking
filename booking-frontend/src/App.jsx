@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {BrowserRouter, Route, Routes, useLocation} from "react-router-dom";
 
 import {AuthContext} from './services/AuthContext';
-import {CartProvider} from './services/CartProvider'; // Importation du CartProvider
+import {CartProvider} from './services/CartProvider';
 
 import PrivateRoute from "./services/PrivateRoute";
 import PublicRoute from "./services/PublicRoute";
@@ -21,6 +21,8 @@ import NotFound from "./pages/common/NotFound.jsx";
 import Account from "./pages/user/Account.jsx";
 import Cart from "./pages/user/Cart.jsx";
 import ArtistDashboard from "./pages/artist/ArtistDashboard.jsx";
+import Cookies from "js-cookie";
+import {GetCurrentUserInfoRequest} from "./hooks/UserHooks.js";
 
 
 export default function App() {
@@ -29,16 +31,38 @@ export default function App() {
     const [isArtist, setIsArtist] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
-    const getUserDetails = async () => {
-        // votre code de récupération des données utilisateur
-    };
-
     useEffect(() => {
-        getUserDetails().then(() => {
+        const authToken = Cookies.get('authToken');
+
+        if (authToken) {
+            setIsAuthenticated(true);
+            fetchUserData();
+        } else {
             setIsLoading(false);
-            setIsAuthenticated(false)
-        });
+        }
     }, []);
+
+    const fetchUserData = async () => {
+        try {
+            const response = await GetCurrentUserInfoRequest();
+            const userInfo = response.informations;
+
+            if (userInfo.role === "ADMIN") {
+                setIsAdmin(true);
+            } else if (userInfo.role === "ARTIST") {
+                setIsArtist(true);
+            }
+        } catch (error) {
+            if (error.message.includes('500')) {
+                console.log("The service is currently unavailable. Please try again later.");
+            } else if (error.message.includes('401')) {
+                Cookies.remove('authToken');
+                setIsAuthenticated(false);
+            }
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     return (
         <AuthContext.Provider value={{
@@ -51,12 +75,12 @@ export default function App() {
             isArtist,
             setIsArtist
         }}>
-            <CartProvider> {/* Ajout du CartProvider qui enveloppe le BrowserRouter */}
+            <CartProvider>
                 <BrowserRouter>
                     <div className="App">
                         <Routes>
                             {isLoading ? (
-                                <Route path="/*" element={<div>Chargement...</div>} />
+                                <Route path="/*" element={<div>Loading...</div>} />
                             ) : (
                                 <Route path="/*" element={<PageLayout isAuthenticated={isAuthenticated} isAdmin={isAdmin} isArtist={isArtist} />} />
                             )}
@@ -72,9 +96,9 @@ function PageLayout({ isAuthenticated, isAdmin, isArtist }) {
     const location = useLocation();
     const isAdminPage = location.pathname.startsWith("/admin");
 
-    // Ajoutez un style global pour supprimer la double barre de défilement
+    // Add global style to remove double scrollbar
     React.useEffect(() => {
-        // Supprime toute barre de défilement supplémentaire
+        // Remove any additional scrollbar
         document.body.style.overflow = "auto";
         document.documentElement.style.overflow = "auto";
 
