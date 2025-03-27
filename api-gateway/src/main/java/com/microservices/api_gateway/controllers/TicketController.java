@@ -107,7 +107,7 @@ public class TicketController {
     public ResponseEntity<Map<String, GetCurrentUserTicketsResponse>> getUserTickets(
             @Parameter(hidden = true)
             @AuthenticationPrincipal User authenticatedUser
-    ) throws JsonProcessingException {
+    ) {
         return ticketService.getCurrentUserTickets(authenticatedUser.getId());
     }
 

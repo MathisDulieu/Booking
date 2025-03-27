@@ -1,7 +1,6 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export async function LoginRequest(loginData) {
-
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: {
@@ -14,9 +13,7 @@ export async function LoginRequest(loginData) {
         throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const responseData = await response.json();
-
-    return responseData;
+    return await response.json();
 }
 
 export async function RegisterRequest(registerData) {
@@ -32,9 +29,7 @@ export async function RegisterRequest(registerData) {
         throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const responseData = await response.json();
-
-    return responseData;
+    return await response.json();
 }
 
 export async function ResendEmailValidationRequest(email) {
@@ -50,9 +45,7 @@ export async function ResendEmailValidationRequest(email) {
         throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const responseData = await response.json();
-
-    return responseData;
+    return await response.json();
 }
 
 export async function ValidateEmailRequest(token) {
@@ -68,9 +61,7 @@ export async function ValidateEmailRequest(token) {
         throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const responseData = await response.json();
-
-    return responseData;
+    return await response.json();
 }
 
 export async function ValidatePhoneRequest(code) {
@@ -86,7 +77,5 @@ export async function ValidatePhoneRequest(code) {
         throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const responseData = await response.json();
-
-    return responseData;
+    return await response.json();
 }

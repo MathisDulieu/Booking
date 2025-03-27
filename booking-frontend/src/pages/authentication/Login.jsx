@@ -1,71 +1,145 @@
-import React, { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import React, { useState, useContext, useEffect } from "react";
+import { Eye, EyeOff, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { LoginRequest } from "../../hooks/AuthenticationHooks";
+import { AuthContext } from "../../services/AuthContext.jsx";
+import { useNavigate } from "react-router-dom";
 
-const API_BASE_URL = "https://your-api.com"; // Remplacez par votre URL d'API
+const Notification = ({ type, message, onClose }) => {
+    useEffect(() => {
+        const timer = setTimeout(onClose, 6000);
+        return () => clearTimeout(timer);
+    }, [onClose]);
+
+    const getIcon = () => {
+        switch(type) {
+            case 'success':
+                return <CheckCircle2 className="text-green-500 mr-2" />;
+            case 'error':
+                return <AlertCircle className="text-red-500 mr-2" />;
+            default:
+                return null;
+        }
+    };
+
+    return (
+        <div
+            className={`
+                w-full mb-4
+                flex items-center 
+                px-4 py-3 rounded-lg shadow-lg 
+                animate-slide-in-right
+                ${type === 'success'
+                ? 'bg-green-50 border-green-500 text-green-800'
+                : 'bg-red-50 border-red-500 text-red-800'
+            }
+            `}
+        >
+            {getIcon()}
+            <span className="font-medium">{message}</span>
+            <button
+                onClick={onClose}
+                className="ml-4 hover:bg-opacity-10 rounded-full"
+            >
+                ✕
+            </button>
+        </div>
+    );
+};
 
 function Login() {
     const [showPassword, setShowPassword] = useState(false);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [isAdmin, setIsAdmin] = useState(false);
+    const [notification, setNotification] = useState(null);
+
+    const { setIsAuthenticated } = useContext(AuthContext);
+    const navigate = useNavigate();
 
     const togglePasswordVisibility = () => {
         setShowPassword(!showPassword);
     };
 
+    const showNotification = (type, message) => {
+        setNotification({ type, message });
+    };
+
+    const clearNotification = () => {
+        setNotification(null);
+    };
+
+    const setCookie = (name, value, days) => {
+        const date = new Date();
+        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+        const expires = `expires=${date.toUTCString()}`;
+        document.cookie = `${name}=${value}; ${expires}; path=/`;
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError(null);
+        clearNotification();
 
         if (!email || !password) {
-            setError("Veuillez remplir tous les champs.");
+            showNotification('error', "Please fill in all fields.");
             return;
         }
 
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            setError("Adresse e-mail invalide.");
+            showNotification('error', "Invalid email address.");
             return;
         }
 
         setLoading(true);
         try {
             const response = await LoginRequest({ email, password });
-            console.log("Connexion réussie:", response);
-            // Rediriger l'utilisateur ou stocker le token ici
-            if (response.authToken) {
-                localStorage.setItem("token", response.authToken);
-                setIsAuthenticated(true)
-            }
-            else {
-                setError("Échec de la connexion. Vérifiez vos informations.");
-            }
 
-            setTimeout(() => {
-                window.location.replace("/");
-            }, 2000);
-        } catch {
-            setError("Échec de la connexion. Vérifiez vos informations.");
+            if (response.authToken) {
+                setCookie("authToken", response.authToken, 7);
+
+                setIsAuthenticated(true);
+
+                showNotification('success', "Authentication successful!");
+
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                navigate("/");
+            } else {
+                showNotification('error', "Login failed. Please check your credentials.");
+            }
+        } catch (err) {
+            if (err.message.includes('500') || err.message.includes('service')) {
+                showNotification('error', "The service is currently unavailable. Please try again later.");
+            } else if (err.message.includes('401')) {
+                showNotification('error', "Incorrect credentials. Please try again.");
+            } else if (err.message.includes('403')) {
+                showNotification('error', "Your email has not been validated yet.");
+            } else {
+                showNotification('error', "The service is currently unavailable. Please try again later.");
+            }
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
 
     return (
-        <div className="bg-white p-8 rounded-xl shadow-lg max-w-lg mx-auto my-20">
-            <h1 className="text-4xl font-medium">Connexion</h1>
+        <div className="bg-white p-8 rounded-xl shadow-lg max-w-lg mx-auto my-20 relative">
+            <h1 className="text-4xl font-medium">Login</h1>
             <p className="text-slate-500 my-2">
-                Bonjour, ravi de vous revoir 👋
+                Hello, nice to see you again 👋
             </p>
-            {error && <p className="text-red-500 text-sm">{error}</p>}
+
+            {notification && (
+                <Notification
+                    type={notification.type}
+                    message={notification.message}
+                    onClose={clearNotification}
+                />
+            )}
 
             <form onSubmit={handleSubmit} className="my-16">
                 <div className="flex flex-col space-y-5">
                     <label htmlFor="email">
                         <p className="font-medium text-slate-700 pb-2">
-                            Adresse e-mail
+                            Email Address
                         </p>
                         <input
                             id="email"
@@ -74,12 +148,12 @@ function Login() {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             className="w-full py-3 border border-slate-200 rounded-lg px-3 focus:outline-none focus:border-slate-500 hover:shadow"
-                            placeholder="Entrez votre adresse e-mail"
+                            placeholder="Enter your email address"
                         />
                     </label>
                     <label htmlFor="password" className="relative">
                         <p className="font-medium text-slate-700 pb-2">
-                            Mot de passe
+                            Password
                         </p>
                         <div className="relative">
                             <input
@@ -89,7 +163,7 @@ function Login() {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 className="w-full py-3 border border-slate-200 rounded-lg px-3 focus:outline-none focus:border-slate-500 hover:shadow"
-                                placeholder="Entrez votre mot de passe"
+                                placeholder="Enter your password"
                             />
                             <button
                                 type="button"
@@ -109,7 +183,7 @@ function Login() {
                             href="/envoyer-email-validation"
                             className="font-medium text-indigo-600"
                         >
-                            E-mail non validé ?
+                            Email not validated?
                         </a>
                     </div>
                     <button
@@ -117,15 +191,22 @@ function Login() {
                         className="w-full py-3 font-medium text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg border-indigo-500 hover:shadow inline-flex space-x-2 items-center justify-center"
                         disabled={loading}
                     >
-                        {loading ? "Connexion..." : "Se connecter"}
+                        {loading ? (
+                            <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Logging in...
+                            </>
+                        ) : (
+                            "Log In"
+                        )}
                     </button>
                     <p className="text-center">
-                        Pas encore inscrit ?
+                        Not registered yet?
                         <a
                             href="/inscription"
                             className="text-indigo-600 font-medium inline-flex space-x-1 items-center"
                         >
-                            <span>S'inscrire maintenant </span>
+                            <span> Sign up now </span>
                         </a>
                     </p>
                 </div>

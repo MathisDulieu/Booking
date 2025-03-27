@@ -1,11 +1,58 @@
 import React, { useState, useEffect } from "react";
-import { Eye, EyeOff, Check, X, ChevronDown } from "lucide-react";
+import { Eye, EyeOff, Check, X, ChevronDown, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import { RegisterRequest } from "../../hooks/AuthenticationHooks";
+import { useNavigate } from "react-router-dom";
+
+const Notification = ({ type, message, onClose }) => {
+    useEffect(() => {
+        const timer = setTimeout(onClose, 6000);
+        return () => clearTimeout(timer);
+    }, [onClose]);
+
+    const getIcon = () => {
+        switch(type) {
+            case 'success':
+                return <CheckCircle2 className="text-green-500 mr-2" />;
+            case 'error':
+                return <AlertCircle className="text-red-500 mr-2" />;
+            default:
+                return null;
+        }
+    };
+
+    return (
+        <div
+            className={`
+                w-full mb-4
+                flex items-center 
+                px-4 py-3 rounded-lg shadow-lg 
+                animate-slide-in-right
+                ${type === 'success'
+                ? 'bg-green-50 border-green-500 text-green-800'
+                : 'bg-red-50 border-red-500 text-red-800'
+            }
+            `}
+        >
+            {getIcon()}
+            <span className="font-medium">{message}</span>
+            <button
+                onClick={onClose}
+                className="ml-4 hover:bg-opacity-10 rounded-full"
+            >
+                ✕
+            </button>
+        </div>
+    );
+};
 
 function Register() {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [notification, setNotification] = useState(null);
+
+    const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
         email: "",
@@ -21,7 +68,6 @@ function Register() {
         phone: { isValid: false, message: "" },
         password: { isValid: false, message: "" },
         confirmPassword: { isValid: false, message: "" },
-
     });
 
     const EMAIL_REGEX = /^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$/;
@@ -38,6 +84,14 @@ function Register() {
         hasSpecialChar: false,
         hasMinLength: false,
     });
+
+    const showNotification = (type, message) => {
+        setNotification({ type, message });
+    };
+
+    const clearNotification = () => {
+        setNotification(null);
+    };
 
     const formatPhoneNumber = (value) => {
         let phoneNumber = value.replace(/\D/g, "");
@@ -95,14 +149,14 @@ function Register() {
                 isValid = EMAIL_REGEX.test(value);
                 message = isValid
                     ? ""
-                    : "Veuillez entrer une adresse e-mail valide";
+                    : "Please enter a valid email address";
                 break;
 
             case "username":
                 isValid = USERNAME_REGEX.test(value);
                 message = isValid
                     ? ""
-                    : "Le nom d'utilisateur doit contenir entre 3 et 15 caractères sans espaces";
+                    : "The username must contain between 3 and 15 characters, without spaces";
                 break;
 
             case "phone": {
@@ -111,7 +165,7 @@ function Register() {
                 isValid = rawPhone.length > 0 && PHONE_REGEX.test(fullPhone);
                 message = isValid
                     ? ""
-                    : "Veuillez entrer un numéro de téléphone français valide";
+                    : "Please enter a valid French phone number";
                 break;
             }
 
@@ -119,7 +173,7 @@ function Register() {
                 isValid = PASSWORD_REGEX.test(value);
                 message = isValid
                     ? ""
-                    : "Le mot de passe ne répond pas aux critères de sécurité";
+                    : "The password does not meet the security criteria";
 
                 const hasLowerCase = /[a-z]/.test(value);
                 const hasUpperCase = /[A-Z]/.test(value);
@@ -157,7 +211,7 @@ function Register() {
                 isValid = value === formData.password && value !== "";
                 message = isValid
                     ? ""
-                    : "Les mots de passe ne correspondent pas";
+                    : "The passwords do not match";
                 break;
 
             default:
@@ -174,6 +228,7 @@ function Register() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        clearNotification();
 
         let isFormValid = true;
         Object.keys(formData).forEach((field) => {
@@ -182,7 +237,7 @@ function Register() {
         });
 
         if (isFormValid) {
-            console.log("Formulaire valide, données:", formData);
+            setLoading(true);
             try {
                 const registerData = {
                     email: formData.email,
@@ -190,22 +245,27 @@ function Register() {
                     phoneNumber: '0'+formData.phone.trim().replace(/\s/g, ""),
                     password: formData.password,
                 };
-                const response = await RegisterRequest(registerData);
-                console.log("Inscription réussie:", response);
-                // Rediriger l'utilisateur ou stocker le token ici
-            } catch {
-                console.error("Échec de l'inscription. Vérifiez vos informations.");
+
+                await RegisterRequest(registerData);
+
+                showNotification('success', "A confirmation email has been sent. Please validate your account to log in.");
+
+                await new Promise(resolve => setTimeout(resolve, 3000));
+                navigate("/connexion");
+            } catch (err) {
+                if (err.message.includes('500') || err.message.includes('service')) {
+                    showNotification('error', "The service is currently unavailable. Please try again later.");
+                } else if (err.message.includes('409')) {
+                    showNotification('error', "A user with this email or username already exists.");
+                } else {
+                    showNotification('error', "An error occurred during registration. Please try again.");
+                }
+            } finally {
+                setLoading(false);
             }
         } else {
-            console.log("Formulaire invalide");
+            showNotification('error', "Please correct the errors in the form.");
         }
-    };
-
-    const getPasswordStrengthColor = () => {
-        if (passwordStrength.score < 40) return "bg-red-500";
-        if (passwordStrength.score < 60) return "bg-yellow-500";
-        if (passwordStrength.score < 80) return "bg-blue-500";
-        return "bg-green-500";
     };
 
     const togglePasswordVisibility = () => {
@@ -220,12 +280,27 @@ function Register() {
         setShowDropdown(!showDropdown);
     };
 
+    const getPasswordStrengthColor = () => {
+        if (passwordStrength.score < 40) return "bg-red-500";
+        if (passwordStrength.score < 60) return "bg-yellow-500";
+        if (passwordStrength.score < 80) return "bg-blue-500";
+        return "bg-green-500";
+    };
+
     return (
-        <div className="bg-white p-8 rounded-xl shadow shadow-slate-300 max-w-lg mx-auto my-20">
-            <h1 className="text-4xl font-medium">Inscription</h1>
+        <div className="bg-white p-8 rounded-xl shadow shadow-slate-300 max-w-lg mx-auto my-20 relative">
+            <h1 className="text-4xl font-medium">Sign up</h1>
             <p className="text-slate-500 my-2">
-                Créez votre compte pour commencer 👋
+                Create your account to get started 👋
             </p>
+
+            {notification && (
+                <Notification
+                    type={notification.type}
+                    message={notification.message}
+                    onClose={clearNotification}
+                />
+            )}
 
             <form onSubmit={handleSubmit} className="my-10">
                 <div className="flex flex-col space-y-5">
@@ -235,19 +310,19 @@ function Register() {
                             className="flex items-center justify-between"
                         >
                             <p className="font-medium text-slate-700 pb-2">
-                                Adresse e-mail{" "}
+                                Email address{" "}
                                 <span className="text-red-500">*</span>
                             </p>
                             {formData.email &&
                                 (validations.email.isValid ? (
                                     <span className="text-green-500 flex items-center text-sm">
                                         <Check size={16} className="mr-1" />{" "}
-                                        Valide
+                                        Valid
                                     </span>
                                 ) : (
                                     <span className="text-red-500 flex items-center text-sm">
-                                        <X size={16} className="mr-1" /> Non
-                                        valide
+                                        <X size={16} className="mr-1" />
+                                        Invalid
                                     </span>
                                 ))}
                         </label>
@@ -262,7 +337,7 @@ function Register() {
                                     ? "border-red-400"
                                     : "border-slate-200"
                             } rounded-lg px-3 focus:outline-none focus:border-slate-500 hover:shadow`}
-                            placeholder="Entrez votre adresse e-mail"
+                            placeholder="Enter your email address"
                             required
                         />
                         {validations.email.message && (
@@ -278,19 +353,19 @@ function Register() {
                             className="flex items-center justify-between"
                         >
                             <p className="font-medium text-slate-700 pb-2">
-                                Nom d'utilisateur{" "}
+                                Username{" "}
                                 <span className="text-red-500">*</span>
                             </p>
                             {formData.username &&
                                 (validations.username.isValid ? (
                                     <span className="text-green-500 flex items-center text-sm">
                                         <Check size={16} className="mr-1" />{" "}
-                                        Valide
+                                        Valid
                                     </span>
                                 ) : (
                                     <span className="text-red-500 flex items-center text-sm">
-                                        <X size={16} className="mr-1" /> Non
-                                        valide
+                                        <X size={16} className="mr-1" />
+                                        Invalid
                                     </span>
                                 ))}
                         </label>
@@ -305,7 +380,7 @@ function Register() {
                                     ? "border-red-400"
                                     : "border-slate-200"
                             } rounded-lg px-3 focus:outline-none focus:border-slate-500 hover:shadow`}
-                            placeholder="Choisissez un nom d'utilisateur"
+                            placeholder="Choose a username"
                             required
                         />
                         {validations.username.message && (
@@ -314,7 +389,7 @@ function Register() {
                             </p>
                         )}
                         <p className="text-xs text-slate-500 mt-1">
-                            Entre 3 et 15 caractères, sans espaces
+                            Between 3 and 15 characters, no spaces
                         </p>
                     </div>
 
@@ -324,19 +399,19 @@ function Register() {
                             className="flex items-center justify-between"
                         >
                             <p className="font-medium text-slate-700 pb-2">
-                                Numéro de téléphone{" "}
+                                Phone number{" "}
                                 <span className="text-red-500">*</span>
                             </p>
                             {formData.phone &&
                                 (validations.phone.isValid ? (
                                     <span className="text-green-500 flex items-center text-sm">
                                         <Check size={16} className="mr-1" />{" "}
-                                        Valide
+                                        Valid
                                     </span>
                                 ) : (
                                     <span className="text-red-500 flex items-center text-sm">
-                                        <X size={16} className="mr-1" /> Non
-                                        valide
+                                        <X size={16} className="mr-1" />
+                                        Invalid
                                     </span>
                                 ))}
                         </label>
@@ -395,19 +470,19 @@ function Register() {
                             className="flex items-center justify-between"
                         >
                             <p className="font-medium text-slate-700 pb-2">
-                                Mot de passe{" "}
+                                Password{" "}
                                 <span className="text-red-500">*</span>
                             </p>
                             {formData.password &&
                                 (validations.password.isValid ? (
                                     <span className="text-green-500 flex items-center text-sm">
                                         <Check size={16} className="mr-1" />{" "}
-                                        Valide
+                                        Valid
                                     </span>
                                 ) : (
                                     <span className="text-red-500 flex items-center text-sm">
-                                        <X size={16} className="mr-1" /> Non
-                                        valide
+                                        <X size={16} className="mr-1" />
+                                        Invalid
                                     </span>
                                 ))}
                         </label>
@@ -423,7 +498,7 @@ function Register() {
                                         ? "border-red-400"
                                         : "border-slate-200"
                                 } rounded-lg px-3 focus:outline-none focus:border-slate-500 hover:shadow`}
-                                placeholder="Créez votre mot de passe"
+                                placeholder="Create your password"
                                 required
                             />
                             <button
@@ -465,7 +540,7 @@ function Register() {
                                             ) : (
                                                 <X size={12} className="mr-1" />
                                             )}
-                                            Au moins 8 caractères
+                                            At least 8 characters
                                         </li>
                                         <li
                                             className={`flex items-center ${
@@ -482,7 +557,7 @@ function Register() {
                                             ) : (
                                                 <X size={12} className="mr-1" />
                                             )}
-                                            Au moins une lettre minuscule
+                                            At least one lowercase letter
                                         </li>
                                         <li
                                             className={`flex items-center ${
@@ -499,7 +574,7 @@ function Register() {
                                             ) : (
                                                 <X size={12} className="mr-1" />
                                             )}
-                                            Au moins une lettre majuscule
+                                            At least one uppercase letter
                                         </li>
                                         <li
                                             className={`flex items-center ${
@@ -516,7 +591,7 @@ function Register() {
                                             ) : (
                                                 <X size={12} className="mr-1" />
                                             )}
-                                            Au moins un chiffre
+                                            At least one number
                                         </li>
                                         <li
                                             className={`flex items-center ${
@@ -533,7 +608,7 @@ function Register() {
                                             ) : (
                                                 <X size={12} className="mr-1" />
                                             )}
-                                            Au moins un caractère spécial
+                                            At least one special character
                                             (!@#$%^&*...)
                                         </li>
                                     </ul>
@@ -553,19 +628,19 @@ function Register() {
                             className="flex items-center justify-between"
                         >
                             <p className="font-medium text-slate-700 pb-2">
-                                Confirmation du mot de passe{" "}
+                                Password confirmation{" "}
                                 <span className="text-red-500">*</span>
                             </p>
                             {formData.confirmPassword &&
                                 (validations.confirmPassword.isValid ? (
                                     <span className="text-green-500 flex items-center text-sm">
                                         <Check size={16} className="mr-1" />{" "}
-                                        Valide
+                                        Valid
                                     </span>
                                 ) : (
                                     <span className="text-red-500 flex items-center text-sm">
-                                        <X size={16} className="mr-1" /> Non
-                                        valide
+                                        <X size={16} className="mr-1" />
+                                        Invalid
                                     </span>
                                 ))}
                         </label>
@@ -581,7 +656,7 @@ function Register() {
                                         ? "border-red-400"
                                         : "border-slate-200"
                                 } rounded-lg px-3 focus:outline-none focus:border-slate-500 hover:shadow`}
-                                placeholder="Confirmez votre mot de passe"
+                                placeholder="Confirm your password"
                                 required
                             />
                             <button
@@ -607,30 +682,39 @@ function Register() {
                         type="submit"
                         className="w-full py-3 font-medium text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg border-indigo-500 hover:shadow inline-flex space-x-2 items-center justify-center"
                     >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-6 w-6"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
-                            />
-                        </svg>
-                        <span>S'inscrire</span>
+                        {loading ? (
+                            <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Signing up...
+                            </>
+                        ) : (
+                            <>
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="h-6 w-6"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+                                    />
+                                </svg>
+                                <span>Sign up</span>
+                            </>
+                        )}
                     </button>
 
                     <p className="text-center">
-                        Déjà inscrit ?
+                        Already registered?
                         <a
                             href="/connexion"
                             className="text-indigo-600 font-medium inline-flex space-x-1 items-center ml-1"
                         >
-                            <span>Se connecter </span>
+                            <span>Log in</span>
                             <span>
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
