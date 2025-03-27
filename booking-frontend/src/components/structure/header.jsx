@@ -4,15 +4,40 @@ import { Link } from 'react-router-dom';
 import { AuthContext } from '../../services/AuthContext';
 import { CartContext } from '../../services/CartContext';
 import { LayoutDashboard, Menu, Search, X, ShoppingCart } from 'lucide-react';
+import { GetAllEventsRequests } from '../../hooks/EventHooks';
 
 const Header = () => {
     const [searchTerm, setSearchTerm] = useState('');
+    const [searchCategory, setSearchCategory] = useState('EVENT');
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
     const { isAuthenticated, isAdmin, isArtist } = useContext(AuthContext);
     const { totalPrice, totalItems } = useContext(CartContext);
 
-    const handleSearch = () => {
+    const categories = [
+        'EVENT', 
+        'ARTIST', 
+        'CONCERT', 
+        'FESTIVAL', 
+        'PLACE'
+    ];
+
+    const handleSearch = async () => {
+        if(!searchTerm.trim()) return;
+
+        try{
+            const searchData = {
+                filter: searchCategory,
+                filterSearch: searchTerm.trim(),
+            }
+            //TODO : Terminer la logique en coopération entre le Header et la page Home
+
+            const response = await GetAllEventsRequests(searchData, 0, 10);
+            console.log("Résultat de la recherche:", response);
+        }catch(error){
+            console.error("Erreur lors de la recherche:", error);
+        }
+
         console.log("Recherche effectuée pour:", searchTerm);
         setMobileSearchOpen(false);
     };
@@ -54,12 +79,27 @@ const Header = () => {
                 </div>
 
                 <div className="w-full max-w-md lg:max-w-xl xl:max-w-2xl bg-white rounded-md hidden md:flex items-center mx-4 border border-blue-500 focus-within:ring-2 focus-within:ring-blue-300">
-                    <select className="bg-transparent uppercase font-bold text-xs lg:text-sm p-2 lg:p-4 mr-2 lg:mr-4 cursor-pointer hover:bg-gray-100 transition duration-300 text-blue-800" name="categories" id="categories">
-                        <option>Évenements</option>
-                        <option>Concert</option>
-                        <option>Festival</option>
-                        <option>Artiste</option>
-                        <option>Lieu</option>
+                    <select 
+                        className="bg-transparent uppercase font-bold text-xs lg:text-sm p-2 lg:p-4 mr-2 lg:mr-4 cursor-pointer hover:bg-gray-100 transition duration-300 text-blue-800" 
+                        name="categories" 
+                        id="categories"
+                        onChange={(e) => setSearchCategory(e.target.value)}
+                    >
+                        {categories.map((category) => (
+                            <option key={category} value={category}>
+                                {category === "EVENT"
+                                    ? "All"
+                                    : category === "CONCERT"
+                                    ? "Concerts"
+                                    : category === "FESTIVAL"
+                                    ? "Festivals"
+                                    : category === "ARTIST"
+                                    ? "Artists"
+                                    : category === "PLACE"
+                                    ? "Place"
+                                    : category}
+                            </option>
+                        ))}
                     </select>
                     <input
                         className="border-l border-gray-300 bg-transparent font-semibold text-sm pl-4 py-2 lg:py-3 flex-grow focus:outline-none text-gray-800"

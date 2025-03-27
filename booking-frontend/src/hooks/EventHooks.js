@@ -23,10 +23,19 @@ export async function GetEventByIdRequest(eventId) {
     }
 }
 
-export async function GetAllEventsRequests(eventFilterData) {
+export async function GetAllEventsRequests(eventFilterData, actualPage, eventPerPage) {
     
     try {
-        const response = await fetch(`${API_BASE_URL}/events`, {
+        const url = `${API_BASE_URL}/events?page=${actualPage}&pageSize=${eventPerPage}`;
+
+        if(eventFilterData.page && eventFilterData.pageSize){
+            url.search = new URLSearchParams({
+                page: eventFilterData.page,
+                pageSize: eventFilterData.pageSize
+
+            }).toString();
+        }
+        const response = await fetch(url, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
